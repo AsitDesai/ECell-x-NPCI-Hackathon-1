@@ -6,7 +6,7 @@ import 'home_page.dart';
 import 'screens/profile_screen.dart';
 import 'screens/settings_screen.dart';
 import 'screens/help_screen.dart';
-import 'screens/qr_scan.dart'; // Import the separate QR Scanner file
+import 'screens/qr_scanner_screen.dart'; // Correct path for QR scanner
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -35,7 +35,7 @@ class MyApp extends StatelessWidget {
         '/profile': (context) => ProfileScreen(),
         '/settings': (context) => SettingsScreen(),
         '/help': (context) => HelpScreen(),
-        '/scanner': (context) => QRScannerScreen(), // Link to the new QR scanner file
+        '/scanner': (context) => QRScannerScreen(), // Correct route for the scanner
       },
     );
   }
