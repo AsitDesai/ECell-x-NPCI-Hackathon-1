@@ -228,6 +228,44 @@ class _HomePageState extends State<HomePage> {
       ),
       body: Column(
         children: [
+          // Ads Section
+          Container(
+            margin: EdgeInsets.symmetric(vertical: 10, horizontal: 16),
+            padding: EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: Colors.blue[50],
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Row(
+              children: [
+                Icon(Icons.local_offer, color: Colors.blue[800]),
+                SizedBox(width: 10),
+                Expanded(
+                  child: Text(
+                    "Check out our latest offers!",
+                    style: TextStyle(
+                      fontSize: 16,
+                      color: Colors.blue[800],
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+                TextButton(
+                  onPressed: () {
+                    // Navigate to offers page or perform an action
+                    print('View Offers');
+                  },
+                  child: Text(
+                    "View",
+                    style: TextStyle(
+                      color: Colors.blue[800],
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
           Expanded(
             child: Center(
               child: Text(
