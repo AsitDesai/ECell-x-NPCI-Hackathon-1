@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:ursapp/screens/qr_scan.dart'; // Import the separate QR Scanner file
 
 class HomePage extends StatefulWidget {
   @override
@@ -14,268 +15,142 @@ class _HomePageState extends State<HomePage> {
   Future<void> _handleLogout(BuildContext context) async {
     try {
       await FirebaseAuth.instance.signOut();
-      Navigator.of(context).pushReplacementNamed('/login'); // Navigate to login screen
+      Navigator.of(context).pushReplacementNamed('/login');
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error signing out. Please try again.')),
+        const SnackBar(content: Text('Error signing out. Please try again.')),
       );
     }
   }
 
   // Handle search
   void _handleSearch(String value) {
-    // Implement search functionality
     print('Searching for: $value');
-    // Add your search logic here
   }
 
   // Handle notifications
   void _handleNotifications() {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text('Notifications'),
-        content: Container(
-          width: double.maxFinite,
-          child: ListView(
-            shrinkWrap: true,
-            children: [
-              ListTile(
-                leading: Icon(Icons.notifications),
-                title: Text('New notification 1'),
-                subtitle: Text('Notification details'),
-              ),
-              ListTile(
-                leading: Icon(Icons.notifications),
-                title: Text('New notification 2'),
-                subtitle: Text('Notification details'),
-              ),
-            ],
-          ),
-        ),
-        actions: [
-          TextButton(
-            child: Text('Close'),
-            onPressed: () => Navigator.of(context).pop(),
-          ),
-        ],
-      ),
-    );
+    _showDialog('Notifications', [
+      _buildListItem(Icons.notifications, 'New notification 1', 'Notification details'),
+      _buildListItem(Icons.notifications, 'New notification 2', 'Notification details'),
+    ]);
   }
 
   // Handle messages
   void _handleMessages() {
+    _showDialog('Messages', [
+      _buildListItem(Icons.person, 'John Doe', 'Hello, how are you?'),
+      _buildListItem(Icons.person, 'Jane Smith', 'Meeting at 3 PM'),
+    ]);
+  }
+
+  void _showDialog(String title, List<Widget> items) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text('Messages'),
-        content: Container(
-          width: double.maxFinite,
-          child: ListView(
-            shrinkWrap: true,
-            children: [
-              ListTile(
-                leading: CircleAvatar(
-                  child: Icon(Icons.person),
-                ),
-                title: Text('John Doe'),
-                subtitle: Text('Hello, how are you?'),
-              ),
-              ListTile(
-                leading: CircleAvatar(
-                  child: Icon(Icons.person),
-                ),
-                title: Text('Jane Smith'),
-                subtitle: Text('Meeting at 3 PM'),
-              ),
-            ],
-          ),
-        ),
-        actions: [
-          TextButton(
-            child: Text('Close'),
-            onPressed: () => Navigator.of(context).pop(),
-          ),
-        ],
+        title: Text(title),
+        content: ListView(shrinkWrap: true, children: items),
+        actions: [TextButton(child: const Text('Close'), onPressed: () => Navigator.of(context).pop())],
       ),
     );
   }
 
-  // Handle profile navigation
-  void _navigateToProfile() {
-    Navigator.of(context).pushNamed('/profile'); // Make sure to define this route
+  Widget _buildListItem(IconData icon, String title, String subtitle) {
+    return ListTile(
+      leading: Icon(icon),
+      title: Text(title),
+      subtitle: Text(subtitle),
+    );
   }
 
-  // Handle settings navigation
-  void _navigateToSettings() {
-    Navigator.of(context).pushNamed('/settings'); // Make sure to define this route
-  }
-
-  // Handle help navigation
-  void _navigateToHelp() {
-    Navigator.of(context).pushNamed('/help'); // Make sure to define this route
-  }
+  // Navigation methods
+  void _navigateToProfile() => Navigator.of(context).pushNamed('/profile');
+  void _navigateToSettings() => Navigator.of(context).pushNamed('/settings');
+  void _navigateToHelp() => Navigator.of(context).pushNamed('/help');
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: PreferredSize(
-        preferredSize: Size.fromHeight(60),
+        preferredSize: const Size.fromHeight(60),
         child: AppBar(
           backgroundColor: Colors.white,
           elevation: 2,
-          title: Container(
-            width: MediaQuery.of(context).size.width * 0.5,
-            child: TextField(
-              controller: searchController,
-              onChanged: _handleSearch,
-              decoration: InputDecoration(
-                hintText: "Search...",
-                hintStyle: TextStyle(color: Colors.grey[400]),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(30),
-                  borderSide: BorderSide.none,
-                ),
-                filled: true,
-                fillColor: Colors.grey[100],
-                contentPadding: EdgeInsets.symmetric(horizontal: 20, vertical: 8),
-                prefixIcon: Icon(Icons.search, color: Colors.grey[400]),
-              ),
-            ),
-          ),
-          actions: [
-            IconButton(
-              icon: Icon(Icons.notifications_outlined, color: Colors.grey[700]),
-              onPressed: _handleNotifications,
-            ),
-            IconButton(
-              icon: Icon(Icons.mail_outline, color: Colors.grey[700]),
-              onPressed: _handleMessages,
-            ),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16.0),
-              child: PopupMenuButton(
-                offset: Offset(0, 50),
-                child: Row(
-                  children: [
-                    CircleAvatar(
-                      backgroundImage: AssetImage('assets/chill.jpg'),
-                      radius: 18,
-                    ),
-                    SizedBox(width: 8),
-                    Icon(Icons.arrow_drop_down, color: Colors.grey[700]),
-                  ],
-                ),
-                itemBuilder: (context) => [
-                  PopupMenuItem(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          children: [
-                            CircleAvatar(
-                              backgroundImage: AssetImage('assets/chill.jpg'),
-                              radius: 25,
-                            ),
-                            SizedBox(width: 12),
-                            Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  user?.displayName ?? "User",
-                                  style: TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 16,
-                                  ),
-                                ),
-                                Text(
-                                  user?.email ?? "email@example.com",
-                                  style: TextStyle(
-                                    color: Colors.grey[600],
-                                    fontSize: 14,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ],
-                        ),
-                        Divider(height: 20),
-                        InkWell(
-                          onTap: _navigateToProfile,
-                          child: _buildPopupMenuItem(Icons.person_outline, "Profile"),
-                        ),
-                        InkWell(
-                          onTap: _navigateToSettings,
-                          child: _buildPopupMenuItem(Icons.settings_outlined, "Settings"),
-                        ),
-                        InkWell(
-                          onTap: _navigateToHelp,
-                          child: _buildPopupMenuItem(Icons.help_outline, "Help"),
-                        ),
-                        Divider(height: 20),
-                        InkWell(
-                          onTap: () => _handleLogout(context),
-                          child: _buildPopupMenuItem(Icons.logout, "Logout"),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
+          title: _buildSearchField(),
+          actions: _buildAppBarActions(),
         ),
       ),
       body: Column(
         children: [
-          // Ads Section
-          Container(
-            margin: EdgeInsets.symmetric(vertical: 10, horizontal: 16),
-            padding: EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: Colors.blue[50],
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: Row(
-              children: [
-                Icon(Icons.local_offer, color: Colors.blue[800]),
-                SizedBox(width: 10),
-                Expanded(
-                  child: Text(
-                    "Check out our latest offers!",
-                    style: TextStyle(
-                      fontSize: 16,
-                      color: Colors.blue[800],
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
-                TextButton(
-                  onPressed: () {
-                    // Navigate to offers page or perform an action
-                    print('View Offers');
-                  },
-                  child: Text(
-                    "View",
-                    style: TextStyle(
-                      color: Colors.blue[800],
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
-              ],
-            ),
+          _buildAdsSection(),
+          _buildScanQRButton(),
+          _buildWelcomeMessage(),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSearchField() {
+    return SizedBox(
+      width: MediaQuery.of(context).size.width * 0.5,
+      child: TextField(
+        controller: searchController,
+        onChanged: _handleSearch,
+        decoration: InputDecoration(
+          hintText: "Search...",
+          hintStyle: TextStyle(color: Colors.grey[400]),
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(30),
+            borderSide: BorderSide.none,
           ),
-          Expanded(
-            child: Center(
-              child: Text(
-                "Welcome to URS!",
-                style: TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.grey[800],
-                ),
-              ),
+          filled: true,
+          fillColor: Colors.grey[100],
+          contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+          prefixIcon: Icon(Icons.search, color: Colors.grey[400]),
+        ),
+      ),
+    );
+  }
+
+  List<Widget> _buildAppBarActions() {
+    return [
+      IconButton(
+        icon: const Icon(Icons.notifications_outlined, color: Colors.grey),
+        onPressed: _handleNotifications,
+      ),
+      IconButton(
+        icon: const Icon(Icons.mail_outline, color: Colors.grey),
+        onPressed: _handleMessages,
+      ),
+      _buildProfileMenu(),
+    ];
+  }
+
+  Widget _buildProfileMenu() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16.0),
+      child: PopupMenuButton(
+        offset: const Offset(0, 50),
+        child: Row(
+          children: [
+            const CircleAvatar(backgroundImage: AssetImage('assets/chill.jpg'), radius: 18),
+            const SizedBox(width: 8),
+            const Icon(Icons.arrow_drop_down, color: Colors.grey),
+          ],
+        ),
+        itemBuilder: (context) => [
+          PopupMenuItem(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _buildProfileHeader(),
+                const Divider(height: 20),
+                _buildPopupMenuItem(Icons.person_outline, "Profile", _navigateToProfile),
+                _buildPopupMenuItem(Icons.settings_outlined, "Settings", _navigateToSettings),
+                _buildPopupMenuItem(Icons.help_outline, "Help", _navigateToHelp),
+                const Divider(height: 20),
+                _buildPopupMenuItem(Icons.logout, "Logout", () => _handleLogout(context)),
+              ],
             ),
           ),
         ],
@@ -283,21 +158,75 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  Widget _buildPopupMenuItem(IconData icon, String text) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8.0),
+  Widget _buildProfileHeader() {
+    return Row(
+      children: [
+        const CircleAvatar(backgroundImage: AssetImage('assets/chill.jpg'), radius: 25),
+        const SizedBox(width: 12),
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(user?.displayName ?? "User", style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+            Text(user?.email ?? "email@example.com", style: TextStyle(color: Colors.grey[600], fontSize: 14)),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _buildPopupMenuItem(IconData icon, String text, VoidCallback onTap) {
+    return InkWell(
+      onTap: onTap,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 8.0),
+        child: Row(
+          children: [
+            Icon(icon, size: 20, color: Colors.grey[700]),
+            const SizedBox(width: 12),
+            Text(text, style: const TextStyle(fontSize: 14, color: Colors.grey)),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildAdsSection() {
+    return Container(
+      margin: const EdgeInsets.symmetric(vertical: 10, horizontal: 16),
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(color: Colors.blue[50], borderRadius: BorderRadius.circular(10)),
       child: Row(
         children: [
-          Icon(icon, size: 20, color: Colors.grey[700]),
-          SizedBox(width: 12),
-          Text(
-            text,
-            style: TextStyle(
-              fontSize: 14,
-              color: Colors.grey[800],
-            ),
+          const Icon(Icons.local_offer, color: Colors.blue),
+          const SizedBox(width: 10),
+          const Expanded(child: Text("Check out our latest offers!", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold))),
+          TextButton(
+            onPressed: () => print('View Offers'),
+            child: const Text("View", style: TextStyle(color: Colors.blue, fontWeight: FontWeight.bold)),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildScanQRButton() {
+    return ElevatedButton(
+      onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (context) => QRScannerScreen())),
+      style: ElevatedButton.styleFrom(
+        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+        textStyle: const TextStyle(fontSize: 16),
+      ),
+      child: const Text('Scan QR Code'),
+    );
+  }
+
+  Widget _buildWelcomeMessage() {
+    return Expanded(
+      child: Center(
+        child: Text(
+          "Welcome to URS!",
+          style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.grey[800]),
+        ),
       ),
     );
   }

@@ -6,12 +6,12 @@ import 'home_page.dart';
 import 'screens/profile_screen.dart';
 import 'screens/settings_screen.dart';
 import 'screens/help_screen.dart';
+import 'screens/qr_scan.dart'; // Import the separate QR Scanner file
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
-  
-  // Check if the user is already logged in
+
   User? user = FirebaseAuth.instance.currentUser;
   String initialRoute = user == null ? '/login' : '/home';
 
@@ -35,12 +35,8 @@ class MyApp extends StatelessWidget {
         '/profile': (context) => ProfileScreen(),
         '/settings': (context) => SettingsScreen(),
         '/help': (context) => HelpScreen(),
+        '/scanner': (context) => QRScannerScreen(), // Link to the new QR scanner file
       },
     );
   }
 }
-
-// git status
-// git add .
-// git commit -m "Your commit message"
-// git push
