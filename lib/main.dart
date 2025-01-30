@@ -33,3 +33,8 @@ class MyApp extends StatelessWidget {
     );
   }
 }
+
+// git status
+// git add .
+// git commit -m "Your commit message"
+// git push
