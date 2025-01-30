@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "683483142242",
+    "project_id": "urs2-e3b1a",
+    "storage_bucket": "urs2-e3b1a.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:683483142242:android:7ee892b7c626f96d0cd93b",
+        "android_client_info": {
+          "package_name": "com.example.ursapp"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCL4Cjygi6z4Ll_GQ2XjTtM2tuL9Z7ejQM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
