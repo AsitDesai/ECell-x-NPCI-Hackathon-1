@@ -27,9 +27,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
   }
 
   Future<void> _checkVendor() async {
-    // Extract UPI ID from QR data
-    final upiUri = Uri.parse(widget.qrData);
-    final upiId = upiUri.queryParameters['pa'];
+    final upiId = widget.qrData; // Directly use the UPI ID passed from ContactsScreen
 
     if (upiId != null) {
       final vendor = await _dbHelper.getVendorByUpiId(upiId);

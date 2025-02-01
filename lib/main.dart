@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/services.dart';
-import 'database/database_helper.dart';
+import 'package:provider/provider.dart'; // Add this import
+import 'database/database_helper.dart'; // Import DatabaseHelper
 import 'database/vendor_data_manager.dart';
 
 // Screen imports
@@ -26,7 +27,7 @@ Future<void> main() async {
   try {
     // Ensure Flutter bindings are initialized
     WidgetsFlutterBinding.ensureInitialized();
-    
+
     // Set preferred orientations
     await SystemChrome.setPreferredOrientations([
       DeviceOrientation.portraitUp,
@@ -36,15 +37,25 @@ Future<void> main() async {
     // Initialize Firebase
     await Firebase.initializeApp();
 
-    // Initialize database and add sample vendors
+    // Initialize database and add sample vendors and phones
     final vendorManager = VendorDataManager();
     await vendorManager.addSampleVendors();
+    await vendorManager.addSamplePhones(); // Add this line to insert sample phones
 
     // Check user authentication status
     User? user = FirebaseAuth.instance.currentUser;
     String initialRoute = user == null ? '/login' : '/home';
 
-    runApp(MyApp(initialRoute: initialRoute));
+    runApp(
+      MultiProvider(
+        providers: [
+          ChangeNotifierProvider(
+            create: (_) => DatabaseHelper(), // Provide DatabaseHelper
+          ),
+        ],
+        child: MyApp(initialRoute: initialRoute),
+      ),
+    );
   } catch (e) {
     print('Initialization Error: $e');
     // Handle initialization errors appropriately
@@ -122,16 +133,16 @@ class MyApp extends StatelessWidget {
         '/my_bills': (context) => MyBillsScreen(),
         '/qr_scanner': (context) => QrScannerScreen(),
         '/payment': (context) {
-          // Extract and validate QR data from route arguments
-          final args = ModalRoute.of(context)?.settings.arguments;
-          if (args is! String) {
-            // Handle invalid or missing QR data
+          // Extract UPI ID from route arguments
+          final upiId = ModalRoute.of(context)?.settings.arguments as String?;
+          if (upiId == null) {
+            // Handle invalid or missing UPI ID
             return Scaffold(
               body: Center(
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    const Text('Invalid QR Data'),
+                    const Text('Invalid UPI ID'),
                     ElevatedButton(
                       onPressed: () => Navigator.of(context).pop(),
                       child: const Text('Go Back'),
@@ -141,54 +152,8 @@ class MyApp extends StatelessWidget {
               ),
             );
           }
-          return PaymentScreen(qrData: args);
+          return PaymentScreen(qrData: upiId); // Pass UPI ID to PaymentScreen
         },
-      },
-      // Handle unknown routes
-      onUnknownRoute: (settings) {
-        return MaterialPageRoute(
-          builder: (context) => Scaffold(
-            appBar: AppBar(
-              title: const Text('Page Not Found'),
-            ),
-            body: Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Text(
-                    'The requested page was not found.',
-                    style: TextStyle(fontSize: 16),
-                  ),
-                  const SizedBox(height: 20),
-                  ElevatedButton(
-                    onPressed: () {
-                      Navigator.of(context).pushNamedAndRemoveUntil(
-                        '/home',
-                        (route) => false,
-                      );
-                    },
-                    child: const Text('Go to Home'),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        );
-      },
-      // Handle errors during navigation
-      onGenerateRoute: (settings) {
-        return MaterialPageRoute(
-          builder: (context) {
-            return Scaffold(
-              appBar: AppBar(
-                title: const Text('Error'),
-              ),
-              body: Center(
-                child: Text('Error loading ${settings.name}'),
-              ),
-            );
-          },
-        );
       },
     );
   }

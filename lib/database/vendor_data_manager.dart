@@ -1,5 +1,6 @@
 import 'database_helper.dart';
 import '../models/vendor.dart';
+import '../models/phone.dart';
 
 class VendorDataManager {
   final DatabaseHelper _dbHelper = DatabaseHelper();
@@ -28,6 +29,30 @@ class VendorDataManager {
 
     for (var vendor in vendors) {
       await _dbHelper.insertVendor(vendor);
+    }
+  }
+
+  Future<void> addSamplePhones() async {
+    final phones = [
+      Phone(
+        name: 'John Store',
+        phoneNumber: '1234567890',
+        upiId: 'vendor1@oksbi',
+      ),
+      Phone(
+        name: 'Super Market',
+        phoneNumber: '0987654321',
+        upiId: 'asitmdesai@oksbi',
+      ),
+      Phone(
+        name: 'Local Shop',
+        phoneNumber: '1122334455',
+        upiId: 'vendor3@okicici',
+      ),
+    ];
+
+    for (var phone in phones) {
+      await _dbHelper.insertPhone(phone);
     }
   }
 }

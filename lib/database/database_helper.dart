@@ -1,14 +1,11 @@
+import 'package:flutter/material.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
 import '../models/vendor.dart';
+import '../models/phone.dart';
 
-class DatabaseHelper {
-  static final DatabaseHelper _instance = DatabaseHelper._internal();
-  static Database? _database;
-
-  factory DatabaseHelper() => _instance;
-
-  DatabaseHelper._internal();
+class DatabaseHelper extends ChangeNotifier {
+  Database? _database;
 
   Future<Database> get database async {
     if (_database != null) return _database!;
@@ -35,13 +32,34 @@ class DatabaseHelper {
         type TEXT NOT NULL CHECK(type IN ('big', 'small', 'medium'))
       )
     ''');
+
+    await db.execute('''
+      CREATE TABLE phones(
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        name TEXT NOT NULL,
+        phone_number TEXT NOT NULL,
+        upi_id TEXT NOT NULL,
+        FOREIGN KEY (upi_id) REFERENCES vendors (upi_id)
+      )
+    ''');
   }
 
   Future<int> insertVendor(Vendor vendor) async {
     final Database db = await database;
-    return await db.insert(
+    final result = await db.insert(
       'vendors',
       vendor.toMap(),
+      conflictAlgorithm: ConflictAlgorithm.replace,
+    );
+    notifyListeners(); // Notify listeners after data change
+    return result;
+  }
+
+  Future<int> insertPhone(Phone phone) async {
+    final Database db = await database;
+    return await db.insert(
+      'phones',
+      phone.toMap(),
       conflictAlgorithm: ConflictAlgorithm.replace,
     );
   }
@@ -56,6 +74,17 @@ class DatabaseHelper {
 
     if (maps.isEmpty) return null;
     return Vendor.fromMap(maps.first);
+  }
+
+  Future<List<Phone>> getPhonesByUpiId(String upiId) async {
+    final Database db = await database;
+    final List<Map<String, dynamic>> maps = await db.query(
+      'phones',
+      where: 'upi_id = ?',
+      whereArgs: [upiId],
+    );
+
+    return List.generate(maps.length, (i) => Phone.fromMap(maps[i]));
   }
 
   Future<List<Vendor>> getAllVendors() async {
