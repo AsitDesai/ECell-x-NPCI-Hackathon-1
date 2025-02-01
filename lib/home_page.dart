@@ -12,7 +12,7 @@ import 'package:ursapp/screens/create_bill.dart'; // Importing Create Bill Scree
 import 'package:ursapp/screens/drafts.dart'; // Importing Drafts Screen
 import 'package:ursapp/screens/upload_bill.dart'; // Importing Upload Bill Screen
 import 'package:ursapp/screens/my_bills.dart'; // Importing My Bills Screen
-import 'package:ursapp/screens/qr_scan.dart'; // Importing the QR Scan Screen
+import 'package:ursapp/screens/qr_scanner_screen.dart'; // Importing QR Scanner Screen
 
 class HomePage extends StatefulWidget {
   @override
@@ -84,6 +84,14 @@ class _HomePageState extends State<HomePage> {
     Navigator.push(
       context,
       MaterialPageRoute(builder: (context) => screen),
+    );
+  }
+
+  // Navigate to QR scanner screen
+  void _navigateToQrScanner(BuildContext context) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => QrScannerScreen()),
     );
   }
 
@@ -218,8 +226,10 @@ class _HomePageState extends State<HomePage> {
       mainAxisSpacing: 20, // Increased spacing between rows
       padding: const EdgeInsets.all(8),
       children: [
-        _buildIconItem(Icons.contact_phone, "Contacts", () => _navigateTo(context, ContactsScreen())),
+        // Add this to the list of children in _buildIconSection
+        _buildIconItem(Icons.qr_code_scanner, "Scan QR", () => _navigateTo(context, QrScannerScreen())),
         _buildIconItem(Icons.qr_code, "Personal QR", () => _navigateTo(context, PersonalQrScreen())),
+        _buildIconItem(Icons.contact_phone, "Contacts", () => _navigateTo(context, ContactsScreen())),
         _buildIconItem(Icons.history, "Transaction_H", () => _navigateTo(context, TransactionHistoryScreen())),
         _buildIconItem(Icons.wallet_giftcard, "Current Points", () => _navigateTo(context, CurrentPointsScreen())),
         _buildIconItem(Icons.receipt_long, "Create Bill", () => _navigateTo(context, CreateBillScreen())),
@@ -253,19 +263,21 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  // Build the scan QR button
-  Widget _buildScanQRButton() {
-    return Container(
-      margin: const EdgeInsets.symmetric(vertical: 16),
-      child: ElevatedButton(
-        onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (context) => QRScannerScreen())),
-        style: ElevatedButton.styleFrom(
-          padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
-          textStyle: const TextStyle(fontSize: 18),
-        ),
-        child: const Text('Scan QR Code'),
+  // Build the welcome message
+  Widget _buildWelcomeMessage() {
+    return Padding(
+      padding: const EdgeInsets.all(16.0),
+      child: Text(
+        'Welcome, ${user?.displayName ?? "User"}!',
+        style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
       ),
     );
+  }
+
+  @override
+  void dispose() {
+    searchController.dispose();
+    super.dispose();
   }
 
   @override
@@ -285,7 +297,6 @@ class _HomePageState extends State<HomePage> {
           children: [
             _buildAdsSection(),
             _buildWelcomeMessage(),
-            _buildScanQRButton(),
             _buildIconSection(),
           ],
         ),
@@ -306,22 +317,5 @@ class _HomePageState extends State<HomePage> {
       ),
       _buildProfileMenu(),
     ];
-  }
-
-  // Build welcome message
-  Widget _buildWelcomeMessage() {
-    return Padding(
-      padding: const EdgeInsets.all(16.0),
-      child: Text(
-        'Welcome, ${user?.displayName ?? "User"}!',
-        style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-      ),
-    );
-  }
-
-  @override
-  void dispose() {
-    searchController.dispose();
-    super.dispose();
   }
 }
