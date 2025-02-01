@@ -3,16 +3,15 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:ursapp/screens/settings_screen.dart';
 import 'package:ursapp/screens/help_screen.dart';
 import 'package:ursapp/screens/profile_screen.dart';
-
-import 'package:ursapp/screens/contacts.dart'; // Importing Contacts Screen
-import 'package:ursapp/screens/personal_qr.dart'; // Importing Personal QR Screen
-import 'package:ursapp/screens/transaction_history.dart'; // Importing Transaction History Screen
-import 'package:ursapp/screens/current_points.dart'; // Importing Current Points Screen
-import 'package:ursapp/screens/create_bill.dart'; // Importing Create Bill Screen
-import 'package:ursapp/screens/drafts.dart'; // Importing Drafts Screen
-import 'package:ursapp/screens/upload_bill.dart'; // Importing Upload Bill Screen
-import 'package:ursapp/screens/my_bills.dart'; // Importing My Bills Screen
-import 'package:ursapp/screens/qr_scanner_screen.dart'; // Importing QR Scanner Screen
+import 'package:ursapp/screens/contacts.dart';
+import 'package:ursapp/screens/personal_qr.dart';
+import 'package:ursapp/screens/transaction_history.dart';
+import 'package:ursapp/screens/current_points.dart';
+import 'package:ursapp/screens/create_bill.dart';
+import 'package:ursapp/screens/drafts.dart';
+import 'package:ursapp/screens/upload_bill.dart';
+import 'package:ursapp/screens/my_bills.dart';
+import 'package:ursapp/screens/qr_scanner_screen.dart';
 
 class HomePage extends StatefulWidget {
   @override
@@ -22,6 +21,7 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   final User? user = FirebaseAuth.instance.currentUser;
   final TextEditingController searchController = TextEditingController();
+  int _selectedIndex = 0;
 
   // Handle logout
   Future<void> _handleLogout(BuildContext context) async {
@@ -87,37 +87,33 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-
   // Build the profile menu
   Widget _buildProfileMenu() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16.0),
-      child: PopupMenuButton(
-        offset: const Offset(0, 50),
-        child: Row(
-          children: [
-            const CircleAvatar(backgroundImage: AssetImage('assets/chill.jpg'), radius: 18),
-            const SizedBox(width: 8),
-            const Icon(Icons.arrow_drop_down, color: Colors.grey),
-          ],
-        ),
-        itemBuilder: (context) => [
-          PopupMenuItem(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _buildProfileHeader(),
-                const Divider(height: 20),
-                _buildPopupMenuItem(Icons.person_outline, "Profile", () => _navigateTo(context, ProfileScreen())),
-                _buildPopupMenuItem(Icons.settings_outlined, "Settings", () => _navigateTo(context, SettingsScreen())),
-                _buildPopupMenuItem(Icons.help_outline, "Help", () => _navigateTo(context, HelpScreen())),
-                const Divider(height: 20),
-                _buildPopupMenuItem(Icons.logout, "Logout", () => _handleLogout(context)),
-              ],
-            ),
-          ),
+    return PopupMenuButton(
+      offset: const Offset(0, 50),
+      child: Row(
+        children: [
+          const CircleAvatar(backgroundImage: AssetImage('assets/chill.jpg'), radius: 18),
+          const SizedBox(width: 8),
+          const Icon(Icons.arrow_drop_down, color: Colors.grey),
         ],
       ),
+      itemBuilder: (context) => [
+        PopupMenuItem(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _buildProfileHeader(),
+              const Divider(height: 20),
+              _buildPopupMenuItem(Icons.person_outline, "Profile", () => _navigateTo(context, ProfileScreen())),
+              _buildPopupMenuItem(Icons.settings_outlined, "Settings", () => _navigateTo(context, SettingsScreen())),
+              _buildPopupMenuItem(Icons.help_outline, "Help", () => _navigateTo(context, HelpScreen())),
+              const Divider(height: 20),
+              _buildPopupMenuItem(Icons.logout, "Logout", () => _handleLogout(context)),
+            ],
+          ),
+        ),
+      ],
     );
   }
 
@@ -212,14 +208,13 @@ class _HomePageState extends State<HomePage> {
   // Build the icon section using GridView
   Widget _buildIconSection() {
     return GridView.count(
-      shrinkWrap: true, // Ensures the GridView only takes the space it needs
-      physics: NeverScrollableScrollPhysics(), // Prevents scrolling inside the GridView
-      crossAxisCount: 4,
-      crossAxisSpacing: 8, // Spacing between columns
-      mainAxisSpacing: 20, // Increased spacing between rows
+      shrinkWrap: true,
+      physics: NeverScrollableScrollPhysics(),
+      crossAxisCount: 3,
+      crossAxisSpacing: 8,
+      mainAxisSpacing: 20,
       padding: const EdgeInsets.all(8),
       children: [
-        // Add this to the list of children in _buildIconSection
         _buildIconItem(Icons.qr_code_scanner, "Scan QR", () => _navigateTo(context, QrScannerScreen())),
         _buildIconItem(Icons.qr_code, "Personal QR", () => _navigateTo(context, PersonalQrScreen())),
         _buildIconItem(Icons.contact_phone, "Contacts", () => _navigateTo(context, ContactsScreen())),
@@ -245,7 +240,7 @@ class _HomePageState extends State<HomePage> {
             backgroundColor: Colors.blue.withOpacity(0.2),
             child: Icon(icon, size: 30, color: Colors.blue),
           ),
-          const SizedBox(height: 12), // Increased spacing between icon and label
+          const SizedBox(height: 12),
           Text(
             label,
             style: const TextStyle(fontSize: 14),
@@ -273,17 +268,26 @@ class _HomePageState extends State<HomePage> {
     super.dispose();
   }
 
+  void _onItemTapped(int index) {
+    setState(() {
+      _selectedIndex = index;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: PreferredSize(
-        preferredSize: const Size.fromHeight(60),
-        child: AppBar(
-          backgroundColor: Colors.white,
-          elevation: 2,
-          title: _buildSearchField(),
-          actions: _buildAppBarActions(),
-        ),
+      appBar: AppBar(
+        backgroundColor: Colors.white,
+        elevation: 2,
+        title: _buildSearchField(),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.notifications_outlined, color: Colors.grey),
+            onPressed: _handleNotifications,
+          ),
+          _buildProfileMenu(),
+        ],
       ),
       body: SingleChildScrollView(
         child: Column(
@@ -294,21 +298,26 @@ class _HomePageState extends State<HomePage> {
           ],
         ),
       ),
+      bottomNavigationBar: BottomNavigationBar(
+        currentIndex: _selectedIndex,
+        onTap: _onItemTapped,
+        selectedItemColor: Colors.blue,
+        unselectedItemColor: Colors.grey,
+        items: const [
+          BottomNavigationBarItem(
+            icon: Icon(Icons.home),
+            label: 'Home',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.history),
+            label: 'History',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.person),
+            label: 'Profile',
+          ),
+        ],
+      ),
     );
-  }
-
-  // Build app bar actions
-  List<Widget> _buildAppBarActions() {
-    return [
-      IconButton(
-        icon: const Icon(Icons.notifications_outlined, color: Colors.grey),
-        onPressed: _handleNotifications,
-      ),
-      IconButton(
-        icon: const Icon(Icons.mail_outline, color: Colors.grey),
-        onPressed: _handleMessages,
-      ),
-      _buildProfileMenu(),
-    ];
   }
 }

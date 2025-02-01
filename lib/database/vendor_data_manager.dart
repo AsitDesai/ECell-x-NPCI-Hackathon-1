@@ -16,7 +16,7 @@ class VendorDataManager {
         vendorId: 'V002',
         upiId: 'asitmdesai@oksbi',
         name: 'Super Market',
-        type: 'big',
+        type: 'small',
       ),
       Vendor(
         vendorId: 'V003',

@@ -45,12 +45,12 @@ class _PaymentScreenState extends State<PaymentScreen> {
   void _calculateRewardPoints(double amount) {
     if (_vendor != null) {
       if (_vendor!.type == 'small' || _vendor!.type == 'medium') {
-        if (amount > 200 && _vendor!.type == 'medium') {
+        if (amount >= 200 && _vendor!.type == 'medium') {
           // For medium vendor, 5% of the amount above 200
           setState(() {
             _rewardPoints = amount * 0.05;
           });
-        } else if (amount >= 100) {
+        } else if (amount >= 100 && _vendor!.type == 'small') {
           // For small and medium vendors, 10% of the amount above 100
           setState(() {
             _rewardPoints = amount * 0.10;
