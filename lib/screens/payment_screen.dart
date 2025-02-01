@@ -18,6 +18,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
   final DatabaseHelper _dbHelper = DatabaseHelper();
   Vendor? _vendor;
   bool _isLoading = true;
+  double _rewardPoints = 0.0;
 
   @override
   void initState() {
@@ -38,6 +39,33 @@ class _PaymentScreenState extends State<PaymentScreen> {
       });
     } else {
       setState(() => _isLoading = false);
+    }
+  }
+
+  void _calculateRewardPoints(double amount) {
+    if (_vendor != null) {
+      if (_vendor!.type == 'small' || _vendor!.type == 'medium') {
+        if (amount > 200 && _vendor!.type == 'medium') {
+          // For medium vendor, 5% of the amount above 200
+          setState(() {
+            _rewardPoints = amount * 0.05;
+          });
+        } else if (amount >= 100) {
+          // For small and medium vendors, 10% of the amount above 100
+          setState(() {
+            _rewardPoints = amount * 0.10;
+          });
+        } else {
+          setState(() {
+            _rewardPoints = 0.0;
+          });
+        }
+      } else {
+        // No reward points for big vendor
+        setState(() {
+          _rewardPoints = 0.0;
+        });
+      }
     }
   }
 
@@ -66,7 +94,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
                             SizedBox(height: 8),
                             Text('Name: ${_vendor!.name}'),
                             Text('Type: ${_vendor!.type}'),
-                            Text('Points Eligible: ${_getPointsMultiplier()}x'),
+                            Text('Reward Points: ${_rewardPoints.toStringAsFixed(2)}'),
                           ],
                         ),
                       ),
@@ -99,6 +127,11 @@ class _PaymentScreenState extends State<PaymentScreen> {
                                 return 'Please enter a valid number';
                               }
                               return null;
+                            },
+                            onChanged: (value) {
+                              if (double.tryParse(value) != null) {
+                                _calculateRewardPoints(double.parse(value));
+                              }
                             },
                           ),
                           SizedBox(height: 20),
@@ -137,18 +170,5 @@ class _PaymentScreenState extends State<PaymentScreen> {
               ),
             ),
     );
-  }
-
-  double _getPointsMultiplier() {
-    switch (_vendor?.type) {
-      case 'small':
-        return 2.0;
-      case 'medium':
-        return 1.5;
-      case 'big':
-        return 1.0;
-      default:
-        return 0.0;
-    }
   }
 }
