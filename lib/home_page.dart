@@ -214,6 +214,8 @@ class _HomePageState extends State<HomePage> {
       shrinkWrap: true, // Ensures the GridView only takes the space it needs
       physics: NeverScrollableScrollPhysics(), // Prevents scrolling inside the GridView
       crossAxisCount: 4,
+      crossAxisSpacing: 8, // Spacing between columns
+      mainAxisSpacing: 20, // Increased spacing between rows
       padding: const EdgeInsets.all(8),
       children: [
         _buildIconItem(Icons.contact_phone, "Contacts", () => _navigateTo(context, ContactsScreen())),
@@ -240,7 +242,7 @@ class _HomePageState extends State<HomePage> {
             backgroundColor: Colors.blue.withOpacity(0.2),
             child: Icon(icon, size: 30, color: Colors.blue),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 12), // Increased spacing between icon and label
           Text(
             label,
             style: const TextStyle(fontSize: 14),
