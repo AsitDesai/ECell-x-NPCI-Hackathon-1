@@ -88,12 +88,13 @@ class _HomePageState extends State<HomePage> {
   }
 
   // Navigate to QR scanner screen
-  void _navigateToQrScanner(BuildContext context) {
-    Navigator.push(
-      context,
-      MaterialPageRoute(builder: (context) => QrScannerScreen()),
-    );
-  }
+  // void _navigateToQrScanner(BuildContext context) {
+  //   Navigator.push(
+  //     context,
+      
+  //     MaterialPageRoute(builder: (context) => QrScannerScreen()),
+  //   );
+  // }
 
   // Build the profile menu
   Widget _buildProfileMenu() {
