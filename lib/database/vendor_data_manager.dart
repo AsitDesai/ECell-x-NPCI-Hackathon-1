@@ -73,34 +73,34 @@ class VendorDataManager {
   }
   Future<void> addSampleTransactions() async {
     final transactions = [
-      Transaction(
-        senderUpiId: 'vendor1@oksbi',
-        receiverUpiId: 'adityakharmale7@oksbi',
-        amount: 100.0,
-        date: '2023-10-01',
-        rewardPoints: -10,
-      ),
-      Transaction(
-        senderUpiId: 'asitmdesai@oksbi',
-        receiverUpiId: 'vendor3@oksbi',
-        amount: 200.0,
-        date: '2023-10-02',
-        rewardPoints: -5,
-      ),
-      Transaction(
-        senderUpiId: 'adityakharmale7@oksbi',
-        receiverUpiId: 'vendor1@oksbi',
-        amount: 150.0,
-        date: '2023-10-03',
-        rewardPoints: 15,
-      ),
-      Transaction(
-        senderUpiId: 'vendor3@oksbi',
-        receiverUpiId: 'asitmdesai@oksbi',
-        amount: 50.0,
-        date: '2023-10-04',
-        rewardPoints: 5,
-      ),
+      // Transaction(
+      //   senderUpiId: 'vendor1@oksbi',
+      //   receiverUpiId: 'adityakharmale7@oksbi',
+      //   amount: 100.0,
+      //   date: '2023-10-01',
+      //   rewardPoints: -10,
+      // ),
+      // Transaction(
+      //   senderUpiId: 'asitmdesai@oksbi',
+      //   receiverUpiId: 'vendor3@oksbi',
+      //   amount: 200.0,
+      //   date: '2023-10-02',
+      //   rewardPoints: -5,
+      // ),
+      // Transaction(
+      //   senderUpiId: 'adityakharmale7@oksbi',
+      //   receiverUpiId: 'vendor1@oksbi',
+      //   amount: 150.0,
+      //   date: '2023-10-03',
+      //   rewardPoints: 15,
+      // ),
+      // Transaction(
+      //   senderUpiId: 'vendor3@oksbi',
+      //   receiverUpiId: 'asitmdesai@oksbi',
+      //   amount: 50.0,
+      //   date: '2023-10-04',
+      //   rewardPoints: 5,
+      // ),
     ];
 
     for (var transaction in transactions) {

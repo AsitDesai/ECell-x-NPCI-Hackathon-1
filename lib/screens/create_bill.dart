@@ -1,6 +1,7 @@
 // lib/screens/create_bill.dart
 import 'package:flutter/material.dart';
 import '../database/database_helper.dart'; // Import your DatabaseHelper
+import 'add_items.dart'; // Import the new AddItemsScreen
 
 class CreateBillScreen extends StatelessWidget {
   final DatabaseHelper dbHelper = DatabaseHelper();
@@ -45,9 +46,31 @@ class CreateBillScreen extends StatelessWidget {
                     itemBuilder: (context, index) {
                       final transaction = transactions[index];
                       return ListTile(
-                        title: Text('Amount: ${transaction['amount']}'),
-                        subtitle: Text('Date: ${transaction['date']}'),
-                        trailing: Text('Reward Points: ${transaction['reward_points']}'),
+                        leading: Checkbox(
+                          value: false, // You can manage the state of the checkbox here
+                          onChanged: (bool? value) {
+                            // Handle checkbox state change
+                          },
+                        ),
+                        title: Text('Transaction ID: ${transaction['transaction_id']}'),
+                        subtitle: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text('Amount: ${transaction['amount']}'),
+                            Text('Date: ${transaction['date']}'),
+                          ],
+                        ),
+                        trailing: IconButton(
+                          icon: Icon(Icons.add),
+                          onPressed: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => AddItemsScreen(),
+                              ),
+                            );
+                          },
+                        ),
                       );
                     },
                   );

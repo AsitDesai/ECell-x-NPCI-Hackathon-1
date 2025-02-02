@@ -17,7 +17,7 @@ class DatabaseHelper extends ChangeNotifier {
     String path = join(await getDatabasesPath(), 'vendor_database.db');
     return await openDatabase(
       path,
-      version: 3, // Increment the version number for the new table
+      version: 4, // Increment the version number for the new table
       onCreate: _onCreate,
       onUpgrade: _onUpgrade, // Add onUpgrade callback for schema migration
     );
@@ -57,6 +57,14 @@ class DatabaseHelper extends ChangeNotifier {
         reward_points INTEGER NOT NULL
       )
     ''');
+      await db.execute('''
+      CREATE TABLE bills(
+      txn_id INTEGER PRIMARY KEY AUTOINCREMENT,
+      price REAL NOT NULL,
+      item TEXT NOT NULL,
+      quantity INTEGER NOT NULL
+      )
+      ''');
   }
 
   Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
@@ -81,6 +89,17 @@ class DatabaseHelper extends ChangeNotifier {
           amount REAL NOT NULL,
           date TEXT NOT NULL,
           reward_points INTEGER NOT NULL
+        )
+      ''');
+    }
+    if (oldVersion < 4) {
+      // Add the new `bills` table
+      await db.execute('''
+        CREATE TABLE bills(
+          txn_id INTEGER PRIMARY KEY AUTOINCREMENT,
+          price REAL NOT NULL,
+          item TEXT NOT NULL,
+          quantity INTEGER NOT NULL
         )
       ''');
     }
@@ -132,6 +151,19 @@ class DatabaseHelper extends ChangeNotifier {
       conflictAlgorithm: ConflictAlgorithm.ignore,
     );
   }
+  Future<int> insertBill(Map<String, dynamic> bill, int transactionId) async {
+    final Database db = await database;
+    final billWithTxnId = {
+      ...bill,
+      'txn_id': transactionId, // Add the transaction ID
+    };
+    return await db.insert(
+      'bills',
+      billWithTxnId,
+      conflictAlgorithm: ConflictAlgorithm.replace,
+    );
+  }
+
 
   // Get vendor by UPI ID
   Future<Vendor?> getVendorByUpiId(String upiId) async {
