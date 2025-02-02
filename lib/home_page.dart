@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:ursapp/screens/settings_screen.dart';
@@ -24,7 +25,46 @@ class _HomePageState extends State<HomePage> {
   final TextEditingController searchController = TextEditingController();
   int _selectedIndex = 0;
 
-  // Handle logout
+  // Image carousel variables
+  late PageController _pageController;
+  late Timer _timer;
+  int _currentPage = 0;
+  final List<String> adsImages = [
+    'assets/ads1.jpeg',
+    'assets/ads2.jpeg',
+    'assets/ads.png',
+  ];
+
+  @override
+  void initState() {
+    super.initState();
+    _pageController = PageController(initialPage: 0);
+    _startAutoScroll();
+  }
+
+  void _startAutoScroll() {
+    _timer = Timer.periodic(const Duration(seconds: 3), (Timer timer) {
+      if (_currentPage < adsImages.length - 1) {
+        _currentPage++;
+      } else {
+        _currentPage = 0;
+      }
+      _pageController.animateToPage(
+        _currentPage,
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeIn,
+      );
+    });
+  }
+
+  @override
+  void dispose() {
+    _pageController.dispose();
+    _timer.cancel();
+    searchController.dispose();
+    super.dispose();
+  }
+
   Future<void> _handleLogout(BuildContext context) async {
     try {
       await FirebaseAuth.instance.signOut();
@@ -36,12 +76,10 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
-  // Handle search
   void _handleSearch(String value) {
     print('Searching for: $value');
   }
 
-  // Handle notifications
   void _handleNotifications() {
     _showDialog('Notifications', [
       _buildListItem(Icons.notifications, 'New notification 1', 'Notification details'),
@@ -49,7 +87,6 @@ class _HomePageState extends State<HomePage> {
     ]);
   }
 
-  // Handle messages
   void _handleMessages() {
     _showDialog('Messages', [
       _buildListItem(Icons.person, 'John Doe', 'Hello, how are you?'),
@@ -57,7 +94,6 @@ class _HomePageState extends State<HomePage> {
     ]);
   }
 
-  // Build notification or message dialog
   void _showDialog(String title, List<Widget> items) {
     showDialog(
       context: context,
@@ -71,7 +107,6 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  // Build a list item for the dialog
   Widget _buildListItem(IconData icon, String title, String subtitle) {
     return ListTile(
       leading: Icon(icon),
@@ -80,7 +115,6 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  // Navigation methods
   void _navigateTo(BuildContext context, Widget screen) {
     Navigator.push(
       context,
@@ -88,7 +122,6 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  // Build the profile menu
   Widget _buildProfileMenu() {
     return PopupMenuButton(
       offset: const Offset(0, 50),
@@ -118,7 +151,6 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  // Build profile header in the profile menu
   Widget _buildProfileHeader() {
     return Row(
       children: [
@@ -135,7 +167,6 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  // Build popup menu item in the profile menu
   Widget _buildPopupMenuItem(IconData icon, String text, VoidCallback onTap) {
     return InkWell(
       onTap: onTap,
@@ -152,7 +183,6 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  // Build the search field
   Widget _buildSearchField() {
     return SizedBox(
       width: MediaQuery.of(context).size.width * 0.6,
@@ -175,42 +205,66 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  // Build the ads section
   Widget _buildAdsSection() {
     return Container(
       margin: const EdgeInsets.symmetric(vertical: 10, horizontal: 16),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.blue[50],
-        borderRadius: BorderRadius.circular(10),
-      ),
-      child: Row(
+      height: 180,
+      child: Column(
         children: [
-          const Icon(Icons.local_offer, color: Colors.blue),
-          const SizedBox(width: 10),
-          const Expanded(
-            child: Text(
-              "Check out our latest offers!",
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+          Expanded(
+            child: PageView.builder(
+              controller: _pageController,
+              itemCount: adsImages.length,
+              onPageChanged: (int page) {
+                setState(() => _currentPage = page);
+              },
+              itemBuilder: (context, index) {
+                return Container(
+                  margin: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(15),
+                    image: DecorationImage(
+                      image: AssetImage(adsImages[index]),
+                      fit: BoxFit.cover,
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.grey.withOpacity(0.3),
+                        spreadRadius: 2,
+                        blurRadius: 5,
+                        offset: const Offset(0, 3),
+                      ),
+                    ],
+                  ),
+                );
+              },
             ),
           ),
-          TextButton(
-            onPressed: () => print('View Offers'),
-            child: const Text(
-              "View",
-              style: TextStyle(color: Colors.blue, fontWeight: FontWeight.bold),
-            ),
+          const SizedBox(height: 10),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: List.generate(adsImages.length, (index) {
+              return AnimatedContainer(
+                duration: const Duration(milliseconds: 300),
+                width: _currentPage == index ? 12 : 8,
+                height: 8,
+                margin: const EdgeInsets.symmetric(horizontal: 4),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(4),
+                  color: _currentPage == index ? Colors.blue : Colors.grey,
+                ),
+              );
+            }),
           ),
         ],
       ),
     );
   }
 
-  // Build the icon section using GridView
   Widget _buildIconSection() {
     return GridView.count(
       shrinkWrap: true,
-      physics: NeverScrollableScrollPhysics(),
+      physics: const NeverScrollableScrollPhysics(),
       crossAxisCount: 3,
       crossAxisSpacing: 8,
       mainAxisSpacing: 20,
@@ -230,7 +284,6 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  // Build each individual icon item
   Widget _buildIconItem(IconData icon, String label, VoidCallback onTap) {
     return GestureDetector(
       onTap: onTap,
@@ -253,7 +306,6 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  // Build the welcome message
   Widget _buildWelcomeMessage() {
     return Padding(
       padding: const EdgeInsets.all(16.0),
@@ -264,16 +316,8 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  @override
-  void dispose() {
-    searchController.dispose();
-    super.dispose();
-  }
-
   void _onItemTapped(int index) {
-    setState(() {
-      _selectedIndex = index;
-    });
+    setState(() => _selectedIndex = index);
   }
 
   @override
@@ -306,18 +350,9 @@ class _HomePageState extends State<HomePage> {
         selectedItemColor: Colors.blue,
         unselectedItemColor: Colors.grey,
         items: const [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.home),
-            label: 'Home',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.history),
-            label: 'History',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.person),
-            label: 'Profile',
-          ),
+          BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
+          BottomNavigationBarItem(icon: Icon(Icons.history), label: 'History'),
+          BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profile'),
         ],
       ),
     );

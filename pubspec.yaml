@@ -64,6 +64,9 @@ flutter:
   # Add this assets section
   assets:
     - assets/chill.jpg
+    - assets/ads1.jpeg
+    - assets/ads2.jpeg
+    - assets/ads3.png
 
   # To add assets to your application, add an assets section, like this:
   # assets:
