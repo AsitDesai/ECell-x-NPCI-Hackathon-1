@@ -17,7 +17,7 @@ class DatabaseHelper extends ChangeNotifier {
     String path = join(await getDatabasesPath(), 'vendor_database.db');
     return await openDatabase(
       path,
-      version: 4, // Increment the version number for the new table
+      version: 5, // Increment the version number for the new table
       onCreate: _onCreate,
       onUpgrade: _onUpgrade, // Add onUpgrade callback for schema migration
     );
@@ -59,10 +59,12 @@ class DatabaseHelper extends ChangeNotifier {
     ''');
       await db.execute('''
       CREATE TABLE bills(
-      txn_id INTEGER PRIMARY KEY AUTOINCREMENT,
-      price REAL NOT NULL,
+      bill_id INTEGER PRIMARY KEY AUTOINCREMENT,
+      txn_id INTEGER NOT NULL,
+      price REAL NOT NULL,  
       item TEXT NOT NULL,
-      quantity INTEGER NOT NULL
+      quantity INTEGER NOT NULL,
+      FOREIGN KEY(txn_id) REFERENCES transactions(transaction_id)
       )
       ''');
   }
@@ -100,6 +102,20 @@ class DatabaseHelper extends ChangeNotifier {
           price REAL NOT NULL,
           item TEXT NOT NULL,
           quantity INTEGER NOT NULL
+        )
+      ''');
+    }
+    if (oldVersion < 5) {
+      // Migrate to version 5: Correct bills table schema
+      await db.execute('DROP TABLE IF EXISTS bills');
+      await db.execute('''
+        CREATE TABLE bills(
+          bill_id INTEGER PRIMARY KEY AUTOINCREMENT,
+          txn_id INTEGER NOT NULL,
+          price REAL NOT NULL,
+          item TEXT NOT NULL,
+          quantity INTEGER NOT NULL,
+          FOREIGN KEY(txn_id) REFERENCES transactions(transaction_id)
         )
       ''');
     }
@@ -153,17 +169,27 @@ class DatabaseHelper extends ChangeNotifier {
   }
   Future<int> insertBill(Map<String, dynamic> bill, int transactionId) async {
     final Database db = await database;
-    final billWithTxnId = {
-      ...bill,
-      'txn_id': transactionId, // Add the transaction ID
-    };
     return await db.insert(
       'bills',
-      billWithTxnId,
+      {
+        'txn_id': transactionId,
+        'price': bill['price'],
+        'item': bill['item'],
+        'quantity': bill['quantity'],
+      },
       conflictAlgorithm: ConflictAlgorithm.replace,
     );
   }
 
+  // Add this new method
+  Future<List<Map<String, dynamic>>> getBillsByTransactionId(int transactionId) async {
+    final Database db = await database;
+    return await db.query(
+      'bills',
+      where: 'txn_id = ?',
+      whereArgs: [transactionId],
+    );
+  }
 
   // Get vendor by UPI ID
   Future<Vendor?> getVendorByUpiId(String upiId) async {

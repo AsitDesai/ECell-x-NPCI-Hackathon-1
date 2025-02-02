@@ -66,7 +66,9 @@ class CreateBillScreen extends StatelessWidget {
                             Navigator.push(
                               context,
                               MaterialPageRoute(
-                                builder: (context) => AddItemsScreen(),
+                                builder: (context) => AddItemsScreen(
+                                  transactionId: transaction['transaction_id'],
+                                ),
                               ),
                             );
                           },
