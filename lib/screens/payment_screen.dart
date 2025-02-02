@@ -67,23 +67,31 @@ class _PaymentScreenState extends State<PaymentScreen> with SingleTickerProvider
 
   void _calculateRewardPoints(double amount) {
     if (_vendor != null) {
-      double multiplier = _getPointsMultiplier();
-      setState(() {
-        _rewardPoints = amount * multiplier;
-      });
-    }
-  }
+      double rewardPoints = 0.0;
 
-  double _getPointsMultiplier() {
-    switch (_vendor?.type) {
-      case 'small':
-        return 0.10;
-      case 'medium':
-        return 0.05;
-      case 'big':
-        return 0.0;
-      default:
-        return 0.0;
+      switch (_vendor!.type) {
+        case 'small':
+          if (amount >= 100) {
+            rewardPoints = amount * 0.10;
+          }
+          break;
+        case 'medium':
+          if (amount > 200) {
+            rewardPoints = amount * 0.05;
+          }
+          break;
+        case 'big':
+          // No reward points for big vendors
+          rewardPoints = 0.0;
+          break;
+        default:
+          rewardPoints = 0.0;
+          break;
+      }
+
+      setState(() {
+        _rewardPoints = rewardPoints;
+      });
     }
   }
 
