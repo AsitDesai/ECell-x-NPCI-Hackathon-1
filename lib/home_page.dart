@@ -32,7 +32,7 @@ class _HomePageState extends State<HomePage> {
   final List<String> adsImages = [
     'assets/ads1.jpeg',
     'assets/ads2.jpeg',
-    'assets/ads.png',
+    'assets/ads3.png',
   ];
 
   @override
