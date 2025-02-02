@@ -12,6 +12,7 @@ import 'package:ursapp/screens/drafts.dart';
 import 'package:ursapp/screens/upload_bill.dart';
 import 'package:ursapp/screens/my_bills.dart';
 import 'package:ursapp/screens/qr_scanner_screen.dart';
+import 'package:ursapp/screens/database_management_screen.dart';
 
 class HomePage extends StatefulWidget {
   @override
@@ -224,6 +225,7 @@ class _HomePageState extends State<HomePage> {
         _buildIconItem(Icons.drafts, "Drafts", () => _navigateTo(context, DraftsScreen())),
         _buildIconItem(Icons.cloud_upload, "Upload Bill", () => _navigateTo(context, UploadBillScreen())),
         _buildIconItem(Icons.assignment, "My Bills", () => _navigateTo(context, MyBillsScreen())),
+        _buildIconItem(Icons.storage, "Manage DB", () => _navigateTo(context, DatabaseManagementScreen())),
       ],
     );
   }

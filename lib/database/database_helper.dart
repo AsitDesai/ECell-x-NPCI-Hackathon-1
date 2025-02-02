@@ -17,11 +17,13 @@ class DatabaseHelper extends ChangeNotifier {
     String path = join(await getDatabasesPath(), 'vendor_database.db');
     return await openDatabase(
       path,
-      version: 1,
+      version: 2, // Increment the version number
       onCreate: _onCreate,
+      onUpgrade: _onUpgrade, // Add onUpgrade callback for schema migration
     );
   }
 
+  //
   Future<void> _onCreate(Database db, int version) async {
     await db.execute('''
       CREATE TABLE vendors(
@@ -29,7 +31,9 @@ class DatabaseHelper extends ChangeNotifier {
         vendor_id TEXT UNIQUE NOT NULL,
         upi_id TEXT UNIQUE NOT NULL,
         name TEXT NOT NULL,
-        type TEXT NOT NULL CHECK(type IN ('big', 'small', 'medium'))
+        type TEXT NOT NULL CHECK(type IN ('big', 'small', 'medium')),
+        phone_number TEXT NOT NULL,
+        location TEXT NOT NULL  -- Add this line for location
       )
     ''');
 
@@ -37,30 +41,70 @@ class DatabaseHelper extends ChangeNotifier {
       CREATE TABLE phones(
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         name TEXT NOT NULL,
-        phone_number TEXT NOT NULL,
-        upi_id TEXT NOT NULL,
-        FOREIGN KEY (upi_id) REFERENCES vendors (upi_id)
+        phone_number TEXT NOT NULL
       )
     ''');
   }
 
+  Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
+    if (oldVersion < 2) {
+      // Add the new `phone_number` column to the `vendors` table
+      await db.execute('ALTER TABLE vendors ADD COLUMN phone_number TEXT NOT NULL DEFAULT ""');
+
+      // Remove the `upi_id` column from the `phones` table
+      await db.execute('CREATE TABLE phones_new(id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT NOT NULL, phone_number TEXT NOT NULL)');
+      await db.execute('INSERT INTO phones_new (id, name, phone_number) SELECT id, name, phone_number FROM phones');
+      await db.execute('DROP TABLE phones');
+      await db.execute('ALTER TABLE phones_new RENAME TO phones');
+    }
+  }
+
+
+  //
+
+
   Future<int> insertVendor(Vendor vendor) async {
     final Database db = await database;
+
+    // Check if vendor with the same vendor_id already exists
+    final List<Map<String, dynamic>> existing = await db.query(
+      'vendors',
+      where: 'vendor_id = ?',
+      whereArgs: [vendor.vendorId],
+    );
+
+    if (existing.isNotEmpty) {
+      return 0; // Return 0 if vendor already exists to prevent duplication
+    }
+
     final result = await db.insert(
       'vendors',
       vendor.toMap(),
-      conflictAlgorithm: ConflictAlgorithm.replace,
+      conflictAlgorithm: ConflictAlgorithm.ignore, // Ensures no duplicate key errors
     );
-    notifyListeners(); // Notify listeners after data change
+
+    notifyListeners();
     return result;
   }
 
   Future<int> insertPhone(Phone phone) async {
     final Database db = await database;
+
+    // Check if phone with the same phone_number already exists
+    final List<Map<String, dynamic>> existing = await db.query(
+      'phones',
+      where: 'phone_number = ?',
+      whereArgs: [phone.phoneNumber],
+    );
+
+    if (existing.isNotEmpty) {
+      return 0; // Return 0 if phone number already exists
+    }
+
     return await db.insert(
       'phones',
       phone.toMap(),
-      conflictAlgorithm: ConflictAlgorithm.replace,
+      conflictAlgorithm: ConflictAlgorithm.ignore,
     );
   }
 
@@ -80,8 +124,6 @@ class DatabaseHelper extends ChangeNotifier {
     final Database db = await database;
     final List<Map<String, dynamic>> maps = await db.query(
       'phones',
-      where: 'upi_id = ?',
-      whereArgs: [upiId],
     );
 
     return List.generate(maps.length, (i) => Phone.fromMap(maps[i]));

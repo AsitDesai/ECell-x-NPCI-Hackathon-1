@@ -27,7 +27,9 @@ class _PaymentScreenState extends State<PaymentScreen> {
   }
 
   Future<void> _checkVendor() async {
-    final upiId = widget.qrData; // Directly use the UPI ID passed from ContactsScreen
+    // Extract UPI ID from QR data
+    final upiUri = Uri.parse(widget.qrData);
+    final upiId = upiUri.queryParameters['pa'];
 
     if (upiId != null) {
       final vendor = await _dbHelper.getVendorByUpiId(upiId);
@@ -42,28 +44,23 @@ class _PaymentScreenState extends State<PaymentScreen> {
 
   void _calculateRewardPoints(double amount) {
     if (_vendor != null) {
-      if (_vendor!.type == 'small' || _vendor!.type == 'medium') {
-        if (amount >= 200 && _vendor!.type == 'medium') {
-          // For medium vendor, 5% of the amount above 200
-          setState(() {
-            _rewardPoints = amount * 0.05;
-          });
-        } else if (amount >= 100 && _vendor!.type == 'small') {
-          // For small and medium vendors, 10% of the amount above 100
-          setState(() {
-            _rewardPoints = amount * 0.10;
-          });
-        } else {
-          setState(() {
-            _rewardPoints = 0.0;
-          });
-        }
-      } else {
-        // No reward points for big vendor
-        setState(() {
-          _rewardPoints = 0.0;
-        });
-      }
+      double multiplier = _getPointsMultiplier();
+      setState(() {
+        _rewardPoints = amount * multiplier;
+      });
+    }
+  }
+
+  double _getPointsMultiplier() {
+    switch (_vendor?.type) {
+      case 'small':
+        return 0.10; // 10% reward points for small vendors
+      case 'medium':
+        return 0.05; // 5% reward points for medium vendors
+      case 'big':
+        return 0.0; // No reward points for big vendors
+      default:
+        return 0.0;
     }
   }
 
