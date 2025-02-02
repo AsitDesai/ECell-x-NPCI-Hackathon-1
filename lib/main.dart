@@ -41,6 +41,7 @@ Future<void> main() async {
     final vendorManager = VendorDataManager();
     await vendorManager.addSampleVendors();
     await vendorManager.addSamplePhones(); // Add this line to insert sample phones
+    await vendorManager.addSampleTransactions();
 
     // Check user authentication status
     User? user = FirebaseAuth.instance.currentUser;

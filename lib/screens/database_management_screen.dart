@@ -57,6 +57,7 @@ class DatabaseManagementScreen extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
+            // View Table Buttons
             ElevatedButton(
               onPressed: () => _viewTableData(context, 'vendors'),
               child: Text('View Vendors Table'),
@@ -65,7 +66,13 @@ class DatabaseManagementScreen extends StatelessWidget {
               onPressed: () => _viewTableData(context, 'phones'),
               child: Text('View Phones Table'),
             ),
+            ElevatedButton(
+              onPressed: () => _viewTableData(context, 'transactions'),
+              child: Text('View Transactions Table'),
+            ),
             SizedBox(height: 20), // Add some spacing
+
+            // Clear Table Buttons
             ElevatedButton(
               onPressed: () => _clearTable(context, 'vendors'),
               child: Text('Clear Vendors Table'),
@@ -73,6 +80,10 @@ class DatabaseManagementScreen extends StatelessWidget {
             ElevatedButton(
               onPressed: () => _clearTable(context, 'phones'),
               child: Text('Clear Phones Table'),
+            ),
+            ElevatedButton(
+              onPressed: () => _clearTable(context, 'transactions'),
+              child: Text('Clear Transactions Table'),
             ),
           ],
         ),

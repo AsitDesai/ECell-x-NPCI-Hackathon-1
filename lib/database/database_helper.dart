@@ -17,14 +17,14 @@ class DatabaseHelper extends ChangeNotifier {
     String path = join(await getDatabasesPath(), 'vendor_database.db');
     return await openDatabase(
       path,
-      version: 2, // Increment the version number
+      version: 3, // Increment the version number for the new table
       onCreate: _onCreate,
       onUpgrade: _onUpgrade, // Add onUpgrade callback for schema migration
     );
   }
 
-  //
   Future<void> _onCreate(Database db, int version) async {
+    // Create vendors table
     await db.execute('''
       CREATE TABLE vendors(
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -33,15 +33,28 @@ class DatabaseHelper extends ChangeNotifier {
         name TEXT NOT NULL,
         type TEXT NOT NULL CHECK(type IN ('big', 'small', 'medium')),
         phone_number TEXT NOT NULL,
-        location TEXT NOT NULL  -- Add this line for location
+        location TEXT NOT NULL
       )
     ''');
 
+    // Create phones table
     await db.execute('''
       CREATE TABLE phones(
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         name TEXT NOT NULL,
         phone_number TEXT NOT NULL
+      )
+    ''');
+
+    // Create transactions table
+    await db.execute('''
+      CREATE TABLE transactions(
+        transaction_id INTEGER PRIMARY KEY AUTOINCREMENT,
+        sender_upi_id TEXT NOT NULL,
+        receiver_upi_id TEXT NOT NULL,
+        amount REAL NOT NULL,
+        date TEXT NOT NULL,
+        reward_points INTEGER NOT NULL
       )
     ''');
   }
@@ -57,12 +70,23 @@ class DatabaseHelper extends ChangeNotifier {
       await db.execute('DROP TABLE phones');
       await db.execute('ALTER TABLE phones_new RENAME TO phones');
     }
+
+    if (oldVersion < 3) {
+      // Add the new `transactions` table
+      await db.execute('''
+        CREATE TABLE transactions(
+          transaction_id INTEGER PRIMARY KEY AUTOINCREMENT,
+          sender_upi_id TEXT NOT NULL,
+          receiver_upi_id TEXT NOT NULL,
+          amount REAL NOT NULL,
+          date TEXT NOT NULL,
+          reward_points INTEGER NOT NULL
+        )
+      ''');
+    }
   }
 
-
-  //
-
-
+  // Insert a new vendor
   Future<int> insertVendor(Vendor vendor) async {
     final Database db = await database;
 
@@ -87,6 +111,7 @@ class DatabaseHelper extends ChangeNotifier {
     return result;
   }
 
+  // Insert a new phone
   Future<int> insertPhone(Phone phone) async {
     final Database db = await database;
 
@@ -108,6 +133,7 @@ class DatabaseHelper extends ChangeNotifier {
     );
   }
 
+  // Get vendor by UPI ID
   Future<Vendor?> getVendorByUpiId(String upiId) async {
     final Database db = await database;
     final List<Map<String, dynamic>> maps = await db.query(
@@ -120,6 +146,7 @@ class DatabaseHelper extends ChangeNotifier {
     return Vendor.fromMap(maps.first);
   }
 
+  // Get all phones
   Future<List<Phone>> getPhonesByUpiId(String upiId) async {
     final Database db = await database;
     final List<Map<String, dynamic>> maps = await db.query(
@@ -129,12 +156,14 @@ class DatabaseHelper extends ChangeNotifier {
     return List.generate(maps.length, (i) => Phone.fromMap(maps[i]));
   }
 
+  // Get all vendors
   Future<List<Vendor>> getAllVendors() async {
     final Database db = await database;
     final List<Map<String, dynamic>> maps = await db.query('vendors');
     return List.generate(maps.length, (i) => Vendor.fromMap(maps[i]));
   }
 
+  // Update a vendor
   Future<int> updateVendor(Vendor vendor) async {
     final Database db = await database;
     return await db.update(
@@ -145,12 +174,49 @@ class DatabaseHelper extends ChangeNotifier {
     );
   }
 
+  // Delete a vendor
   Future<int> deleteVendor(String vendorId) async {
     final Database db = await database;
     return await db.delete(
       'vendors',
       where: 'vendor_id = ?',
       whereArgs: [vendorId],
+    );
+  }
+
+  // Insert a new transaction
+  Future<int> insertTransaction(Map<String, dynamic> transaction) async {
+    final Database db = await database;
+    return await db.insert(
+      'transactions',
+      transaction,
+      conflictAlgorithm: ConflictAlgorithm.ignore,
+    );
+  }
+
+  // Get all transactions
+  Future<List<Map<String, dynamic>>> getAllTransactions() async {
+    final Database db = await database;
+    return await db.query('transactions');
+  }
+
+  // Get transactions by sender UPI ID
+  Future<List<Map<String, dynamic>>> getTransactionsBySenderUpiId(String senderUpiId) async {
+    final Database db = await database;
+    return await db.query(
+      'transactions',
+      where: 'sender_upi_id = ?',
+      whereArgs: [senderUpiId],
+    );
+  }
+
+  // Get transactions by receiver UPI ID
+  Future<List<Map<String, dynamic>>> getTransactionsByReceiverUpiId(String receiverUpiId) async {
+    final Database db = await database;
+    return await db.query(
+      'transactions',
+      where: 'receiver_upi_id = ?',
+      whereArgs: [receiverUpiId],
     );
   }
 }
