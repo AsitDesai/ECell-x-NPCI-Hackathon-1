@@ -92,7 +92,6 @@ class _AddItemsScreenState extends State<AddItemsScreen> {
         ),
       );
 
-      // If an item was successfully added
       if (result != null) {
         final newItem = {
           'name': result['item'],
@@ -100,9 +99,24 @@ class _AddItemsScreenState extends State<AddItemsScreen> {
           'price': result['price'],
         };
         
+        // Calculate new item's total and potential new sum
+        double newItemTotal = (result['quantity'] as int) * (result['price'] as double);
+        double potentialTotal = _totalItemsAmount + newItemTotal;
+
+        // Check if the new total exceeds the transaction amount (with a small threshold)
+        if (potentialTotal > widget.transactionAmount + 0.01) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Cannot add item: Total would exceed transaction amount by \$${(potentialTotal - widget.transactionAmount).toStringAsFixed(2)}.'),
+              backgroundColor: Colors.red,
+            ),
+          );
+          return;
+        }
+
         setState(() {
-          addedItems.add(newItem); // Add to display list
-          unsavedItems.add(newItem); // Add to unsaved items list
+          addedItems.add(newItem);
+          unsavedItems.add(newItem);
           _hasNewItems = true;
           _checkAmountMatch();
         });
@@ -118,7 +132,6 @@ class _AddItemsScreenState extends State<AddItemsScreen> {
       }
     }
   }
-
 
 
 
