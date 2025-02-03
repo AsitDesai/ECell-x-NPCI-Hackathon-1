@@ -26,6 +26,7 @@ class _PaymentScreenState extends State<PaymentScreen> with SingleTickerProvider
   bool _showSuccess = false;
   double _rewardPoints = 0.0;
   String? _senderUpiId = "user@upi"; // Replace with actual user's UPI ID
+  String? _receiverUpiId; // Will store the receiver's UPI ID from the QR data
   int? _transactionId;
 
   @override
@@ -53,11 +54,16 @@ class _PaymentScreenState extends State<PaymentScreen> with SingleTickerProvider
   Future<void> _checkVendor() async {
     final upiUri = Uri.parse(widget.qrData);
     final upiId = upiUri.queryParameters['pa'];
-
+    
+    // Store the receiver UPI id regardless of vendor lookup
+    setState(() {
+      _receiverUpiId = upiId;
+    });
+    
     if (upiId != null) {
       final vendor = await _dbHelper.getVendorByUpiId(upiId);
       setState(() {
-        _vendor = vendor;
+        _vendor = vendor; // Will be null if not found
         _isLoading = false;
       });
     } else {
@@ -76,7 +82,7 @@ class _PaymentScreenState extends State<PaymentScreen> with SingleTickerProvider
           }
           break;
         case 'medium':
-          if (amount > 200) {
+          if (amount >= 200) {
             rewardPoints = amount * 0.05;
           }
           break;
@@ -91,6 +97,11 @@ class _PaymentScreenState extends State<PaymentScreen> with SingleTickerProvider
 
       setState(() {
         _rewardPoints = rewardPoints;
+      });
+    } else {
+      // If vendor is not registered, no rewards apply
+      setState(() {
+        _rewardPoints = 0.0;
       });
     }
   }
@@ -130,7 +141,7 @@ class _PaymentScreenState extends State<PaymentScreen> with SingleTickerProvider
                 children: [
                   Text('To:'),
                   Text(
-                    _vendor?.name ?? '',
+                    _vendor?.name ?? _receiverUpiId ?? '',
                     style: TextStyle(fontWeight: FontWeight.bold),
                   ),
                 ],
@@ -175,7 +186,7 @@ class _PaymentScreenState extends State<PaymentScreen> with SingleTickerProvider
   }
 
   Future<void> _processPayment() async {
-    if (!_formKey.currentState!.validate() || _vendor == null || _senderUpiId == null) {
+    if (!_formKey.currentState!.validate() || _receiverUpiId == null || _senderUpiId == null) {
       return;
     }
 
@@ -184,10 +195,10 @@ class _PaymentScreenState extends State<PaymentScreen> with SingleTickerProvider
 
       final transaction = {
         'sender_upi_id': _senderUpiId,
-        'receiver_upi_id': _vendor!.upiId,
+        'receiver_upi_id': _vendor?.upiId ?? _receiverUpiId,
         'amount': double.parse(_amountController.text),
         'date': DateTime.now().toIso8601String(),
-        'reward_points': _rewardPoints.round(),
+        'reward_points': _vendor != null ? _rewardPoints.round() : 0,
       };
 
       final result = await _dbHelper.insertTransaction(transaction);
@@ -338,7 +349,14 @@ class _PaymentScreenState extends State<PaymentScreen> with SingleTickerProvider
                           Card(
                             child: Padding(
                               padding: const EdgeInsets.all(16.0),
-                              child: Text('Vendor not registered in our system'),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text('Vendor not registered in our system'),
+                                  SizedBox(height: 8),
+                                  Text('UPI ID: ${_receiverUpiId ?? 'N/A'}'),
+                                ],
+                              ),
                             ),
                           ),
                         Form(
@@ -396,7 +414,7 @@ class _PaymentScreenState extends State<PaymentScreen> with SingleTickerProvider
                                 width: double.infinity,
                                 height: 50,
                                 child: ElevatedButton(
-                                  onPressed: _vendor != null ? _showConfirmationDialog : null,
+                                  onPressed: _receiverUpiId != null ? _showConfirmationDialog : null,
                                   child: Text(
                                     'Proceed to Payment',
                                     style: TextStyle(fontSize: 16),
