@@ -17,8 +17,9 @@ class AddItemsScreen extends StatefulWidget {
 class _AddItemsScreenState extends State<AddItemsScreen> {
   final DatabaseHelper _dbHelper = DatabaseHelper();
   List<Map<String, dynamic>> addedItems = [];
+  List<Map<String, dynamic>> unsavedItems = []; // Track new unsaved items
   bool _isLoading = false;
-  bool _hasNewItems = false;  // Track if new items have been added
+  bool _hasNewItems = false;
 
   @override
   void initState() {
@@ -67,8 +68,17 @@ class _AddItemsScreenState extends State<AddItemsScreen> {
 
       // If an item was successfully added
       if (result != null) {
-        setState(() => _hasNewItems = true);
-        await _loadExistingBills();
+        final newItem = {
+          'name': result['item'],
+          'quantity': result['quantity'],
+          'price': result['price'],
+        };
+        
+        setState(() {
+          addedItems.add(newItem); // Add to display list
+          unsavedItems.add(newItem); // Add to unsaved items list
+          _hasNewItems = true;
+        });
       }
     } catch (e) {
       if (mounted) {
@@ -83,10 +93,10 @@ class _AddItemsScreenState extends State<AddItemsScreen> {
   }
 
   Future<void> saveList() async {
-    if (!_hasNewItems) {
+    if (unsavedItems.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Please add at least one item before saving'),
+          content: Text('No new items to save'),
           backgroundColor: Colors.orange,
         ),
       );
@@ -96,8 +106,8 @@ class _AddItemsScreenState extends State<AddItemsScreen> {
     setState(() => _isLoading = true);
 
     try {
-      // Save each item with the transaction ID
-      for (var item in addedItems) {
+      // Save only the unsaved items
+      for (var item in unsavedItems) {
         final formattedItem = {
           'item': item['name'],
           'quantity': item['quantity'],
@@ -108,9 +118,12 @@ class _AddItemsScreenState extends State<AddItemsScreen> {
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('List saved successfully')),
+          const SnackBar(content: Text('New items saved successfully')),
         );
-        setState(() => _hasNewItems = false);  // Reset the flag after successful save
+        setState(() {
+          unsavedItems.clear(); // Clear the unsaved items list
+          _hasNewItems = false; // Reset the flag after successful save
+        });
       }
     } catch (e) {
       if (mounted) {

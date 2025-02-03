@@ -30,9 +30,9 @@ class _HomePageState extends State<HomePage> {
   late Timer _timer;
   int _currentPage = 0;
   final List<String> adsImages = [
-    'assets/ads1.jpeg',
     'assets/ads2.jpeg',
     'assets/ads3.png',
+    'assets/ad4.png',
   ];
 
   @override

@@ -30,11 +30,11 @@ class AddManuallyScreenState extends State<AddManuallyScreen> {
         'price': double.parse(_priceController.text.trim()),
       };
 
-      final dbHelper = Provider.of<DatabaseHelper>(context, listen: false);
-      await dbHelper.insertBill(newItem, widget.transactionId);
+      // final dbHelper = Provider.of<DatabaseHelper>(context, listen: false);
+      // await dbHelper.insertBill(newItem, widget.transactionId);
 
       if (!mounted) return;
-      Navigator.pop(context);
+      Navigator.pop(context, newItem);
       
     } catch (e) {
       if (!mounted) return;
