@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:provider/provider.dart'; // Add this import
 import 'database/database_helper.dart'; // Import DatabaseHelper
 import 'database/vendor_data_manager.dart';
+import 'signup_page.dart'; // Import SignupPage
 
 // Screen imports
 import 'package:ursapp/home_page.dart';
@@ -120,6 +121,7 @@ class MyApp extends StatelessWidget {
       initialRoute: initialRoute,
       routes: {
         '/login': (context) => LoginPage(),
+        '/signup': (context) => SignupPage(),
         '/home': (context) => HomePage(),
         '/profile': (context) => ProfileScreen(),
         '/settings': (context) => SettingsScreen(),
