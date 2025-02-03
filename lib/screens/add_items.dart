@@ -4,10 +4,12 @@ import '../database/database_helper.dart';
 
 class AddItemsScreen extends StatefulWidget {
   final int transactionId;
+  final double transactionAmount; // Add this field
 
   const AddItemsScreen({
     Key? key,
     required this.transactionId,
+    required this.transactionAmount, // Add this parameter
   }) : super(key: key);
 
   @override
@@ -20,11 +22,25 @@ class _AddItemsScreenState extends State<AddItemsScreen> {
   List<Map<String, dynamic>> unsavedItems = []; // Track new unsaved items
   bool _isLoading = false;
   bool _hasNewItems = false;
+  bool _isAmountMatched = false; // Track if amounts match
+
+  double get _totalItemsAmount {
+    return addedItems.fold(0.0, (sum, item) {
+      return sum + ((item['quantity'] ?? 0) * (item['price'] ?? 0.0));
+    });
+  }
+
 
   @override
   void initState() {
     super.initState();
     _loadExistingBills();
+  }
+
+  void _checkAmountMatch() {
+    setState(() {
+      _isAmountMatched = (_totalItemsAmount - widget.transactionAmount).abs() < 0.01;
+    });
   }
 
   Future<void> _loadExistingBills() async {
@@ -39,6 +55,7 @@ class _AddItemsScreenState extends State<AddItemsScreen> {
             'quantity': bill['quantity'] ?? 0,
             'price': bill['price'] ?? 0.0,
           }).toList();
+          _checkAmountMatch();
         });
       }
     } catch (e) {
@@ -58,6 +75,15 @@ class _AddItemsScreenState extends State<AddItemsScreen> {
   }
 
   Future<void> _addItemManually() async {
+    if (_isAmountMatched) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Transaction amount is matched. Cannot add more items.'),
+          backgroundColor: Colors.orange,
+        ),
+      );
+      return;
+    }
     try {
       final result = await Navigator.push(
         context,
@@ -78,6 +104,7 @@ class _AddItemsScreenState extends State<AddItemsScreen> {
           addedItems.add(newItem); // Add to display list
           unsavedItems.add(newItem); // Add to unsaved items list
           _hasNewItems = true;
+          _checkAmountMatch();
         });
       }
     } catch (e) {
@@ -91,6 +118,9 @@ class _AddItemsScreenState extends State<AddItemsScreen> {
       }
     }
   }
+
+
+
 
   Future<void> saveList() async {
     if (unsavedItems.isEmpty) {
@@ -146,6 +176,28 @@ class _AddItemsScreenState extends State<AddItemsScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text("Add Items"),
+        actions: [
+          // Add checkbox in AppBar
+          Center(
+            child: Padding(
+              padding: const EdgeInsets.only(right: 16.0),
+              child: Container(
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: _isAmountMatched ? Colors.green : Colors.grey.shade300,
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.all(2.0),
+                  child: Icon(
+                    Icons.check,
+                    size: 20,
+                    color: _isAmountMatched ? Colors.white : Colors.grey.shade400,
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ],
       ),
       body: Stack(
         children: [
@@ -153,9 +205,25 @@ class _AddItemsScreenState extends State<AddItemsScreen> {
             children: [
               Padding(
                 padding: const EdgeInsets.all(8.0),
-                child: Text(
-                  "Transaction ID: ${widget.transactionId}",
-                  style: const TextStyle(fontWeight: FontWeight.bold),
+                child: Column(
+                  children: [
+                    Text(
+                      "Transaction ID: ${widget.transactionId}",
+                      style: const TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      "Transaction Amount: \$${widget.transactionAmount.toStringAsFixed(2)}",
+                      style: const TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                    Text(
+                      "Total Items Amount: \$${_totalItemsAmount.toStringAsFixed(2)}",
+                      style: TextStyle(
+                        color: _isAmountMatched ? Colors.green : Colors.red,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
                 ),
               ),
               Expanded(
@@ -165,8 +233,11 @@ class _AddItemsScreenState extends State<AddItemsScreen> {
                       )
                     : ListView.builder(
                         itemCount: addedItems.length,
+                        //
                         itemBuilder: (context, index) {
                           final item = addedItems[index];
+                          final itemTotal = 
+                              (item['quantity'] ?? 0) * (item['price'] ?? 0.0);
                           return Card(
                             margin: const EdgeInsets.symmetric(
                               horizontal: 8.0,
@@ -176,8 +247,10 @@ class _AddItemsScreenState extends State<AddItemsScreen> {
                               title: Text(item['name']?.toString() ?? 'Unknown Item'),
                               subtitle: Text(
                                 'Quantity: ${item['quantity']?.toString() ?? '0'}, '
-                                'Price: \$${(item['price'] ?? 0.0).toStringAsFixed(2)}',
+                                'Price: \$${(item['price'] ?? 0.0).toStringAsFixed(2)}\n'
+                                'Total: \$${itemTotal.toStringAsFixed(2)}',
                               ),
+                              isThreeLine: true,
                             ),
                           );
                         },
@@ -189,7 +262,7 @@ class _AddItemsScreenState extends State<AddItemsScreen> {
                   children: [
                     Expanded(
                       child: ElevatedButton(
-                        onPressed: _isLoading ? null : () {
+                        onPressed: _isAmountMatched ? null : () {
                           // TODO: Implement barcode scanning
                         },
                         child: const Text("Barcode Scanning"),
@@ -198,7 +271,7 @@ class _AddItemsScreenState extends State<AddItemsScreen> {
                     const SizedBox(width: 10),
                     Expanded(
                       child: ElevatedButton(
-                        onPressed: _isLoading ? null : _addItemManually,
+                        onPressed: _isAmountMatched ? null : _addItemManually,
                         child: const Text("Add Manually"),
                       ),
                     ),
@@ -211,7 +284,7 @@ class _AddItemsScreenState extends State<AddItemsScreen> {
                   children: [
                     Expanded(
                       child: ElevatedButton(
-                        onPressed: _isLoading ? null : saveList,
+                        onPressed: _isLoading || !_hasNewItems ? null : saveList,
                         style: ElevatedButton.styleFrom(
                           backgroundColor: _hasNewItems 
                               ? Theme.of(context).primaryColor
