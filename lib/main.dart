@@ -2,14 +2,17 @@ import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/services.dart';
-import 'package:provider/provider.dart'; // Add this import
-import 'database/database_helper.dart'; // Import DatabaseHelper
+import 'package:provider/provider.dart';
+
+// Database imports
+import 'database/database_helper.dart';
 import 'database/vendor_data_manager.dart';
-import 'signup_page.dart'; // Import SignupPage
 
 // Screen imports
+import 'splash_screen.dart';
 import 'package:ursapp/home_page.dart';
 import 'package:ursapp/login_page.dart';
+import 'package:ursapp/signup_page.dart';
 import 'package:ursapp/screens/settings_screen.dart';
 import 'package:ursapp/screens/help_screen.dart';
 import 'package:ursapp/screens/profile_screen.dart';
@@ -41,26 +44,21 @@ Future<void> main() async {
     // Initialize database and add sample vendors and phones
     final vendorManager = VendorDataManager();
     await vendorManager.addSampleVendors();
-    await vendorManager.addSamplePhones(); // Add this line to insert sample phones
+    await vendorManager.addSamplePhones();
     await vendorManager.addSampleTransactions();
-
-    // Check user authentication status
-    User? user = FirebaseAuth.instance.currentUser;
-    String initialRoute = user == null ? '/login' : '/home';
 
     runApp(
       MultiProvider(
         providers: [
           ChangeNotifierProvider(
-            create: (_) => DatabaseHelper(), // Provide DatabaseHelper
+            create: (_) => DatabaseHelper(),
           ),
         ],
-        child: MyApp(initialRoute: initialRoute),
+        child: const MyApp(),
       ),
     );
   } catch (e) {
     print('Initialization Error: $e');
-    // Handle initialization errors appropriately
     runApp(
       MaterialApp(
         home: Scaffold(
@@ -74,12 +72,7 @@ Future<void> main() async {
 }
 
 class MyApp extends StatelessWidget {
-  final String initialRoute;
-
-  const MyApp({
-    Key? key,
-    required this.initialRoute,
-  }) : super(key: key);
+  const MyApp({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -118,7 +111,7 @@ class MyApp extends StatelessWidget {
           fillColor: Colors.grey[100],
         ),
       ),
-      initialRoute: initialRoute,
+      home: const SplashScreen(), // Set SplashScreen as the home
       routes: {
         '/login': (context) => LoginPage(),
         '/signup': (context) => SignupPage(),
@@ -136,10 +129,8 @@ class MyApp extends StatelessWidget {
         '/my_bills': (context) => MyBillsScreen(),
         '/qr_scanner': (context) => QrScannerScreen(),
         '/payment': (context) {
-          // Extract UPI ID from route arguments
           final upiId = ModalRoute.of(context)?.settings.arguments as String?;
           if (upiId == null) {
-            // Handle invalid or missing UPI ID
             return Scaffold(
               body: Center(
                 child: Column(
@@ -155,7 +146,7 @@ class MyApp extends StatelessWidget {
               ),
             );
           }
-          return PaymentScreen(qrData: upiId); // Pass UPI ID to PaymentScreen
+          return PaymentScreen(qrData: upiId);
         },
       },
     );
