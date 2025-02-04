@@ -73,6 +73,8 @@ Ensure you have the following installed:
 - [Android Studio or VS Code](https://developer.android.com/studio)
 - Firebase account with authentication enabled
 
+### [App code Documentataion](https://github.com/AdityaKharmaleGoat7/ECell-x-NPCI-Hackathon/blob/main/App_code_documentation.pdf)
+
 ### Step-by-Step Setup
 1. **Clone the repository**
    ```sh
