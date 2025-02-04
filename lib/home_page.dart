@@ -16,10 +16,23 @@ import 'package:ursapp/screens/qr_scanner_screen.dart';
 import 'package:ursapp/screens/database_management_screen.dart';
 import '../database/database_helper.dart';
 import 'package:intl/intl.dart'; // For date formatting
-
+import 'screens/offers_and_rewards_screen.dart';
 extension StringExtension on String {
   String capitalize() {
     return "${this[0].toUpperCase()}${this.substring(1).toLowerCase()}";
+  }
+}
+class OffersAndRewardsScreen extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Offers & Rewards'),
+      ),
+      body: Center(
+        child: Text('Offers and Rewards Screen'),
+      ),
+    );
   }
 }
 
@@ -116,13 +129,13 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
       'screen': DraftsScreen(),
     },
     {
-      'icon': Icons.storage,
-      'title': 'Database',
-      'subtitle': 'Manage records',
+      'icon': Icons.card_giftcard,  // Changed icon
+      'title': 'Offers & Rewards',  // Changed title
+      'subtitle': 'View rewards',    // Changed subtitle
       'color': Colors.indigo,
-      'screen': DatabaseManagementScreen(),
+      'screen': OffersAndRewardsScreen(), // New screen
     },
-  ];
+];
 
   @override
   void initState() {
