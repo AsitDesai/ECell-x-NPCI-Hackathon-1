@@ -17,6 +17,11 @@ import 'package:ursapp/screens/database_management_screen.dart';
 import '../database/database_helper.dart';
 import 'package:intl/intl.dart'; // For date formatting
 
+extension StringExtension on String {
+  String capitalize() {
+    return "${this[0].toUpperCase()}${this.substring(1).toLowerCase()}";
+  }
+}
 
 class HomePage extends StatefulWidget {
   const HomePage({Key? key}) : super(key: key);
@@ -86,7 +91,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
       'screen': CreateBillScreen(),
     },
     {
-      'icon': Icons.wallet_giftcard,
+      'isPoints': true, // Add this flag to identify the points card
       'title': 'Points',
       'subtitle': 'View points',
       'color': Colors.orange,
@@ -517,94 +522,107 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
     );
   }
 
-  Widget _buildRecentTransactions() {
-    return Container(
-      margin: const EdgeInsets.symmetric(vertical: 8),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: const Text(
-              'Recent Transactions',
-              style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-                color: Colors.black87,
-              ),
+Widget _buildRecentTransactions() {
+  return Container(
+    margin: const EdgeInsets.symmetric(vertical: 8),
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          child: const Text(
+            'Recent Transactions',
+            style: TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+              color: Colors.black87,
             ),
           ),
-          const SizedBox(height: 12),
-          SizedBox(
-            height: 120,
-            child: _isLoadingRecent
-                ? Center(child: CircularProgressIndicator())
-                : _recentTransactions.isEmpty
-                    ? Center(
-                        child: Text(
-                          "No recent transactions",
-                          style: TextStyle(color: Colors.grey),
-                        ),
-                      )
-                    : ListView.builder(
-                        scrollDirection: Axis.horizontal,
-                        padding: const EdgeInsets.symmetric(horizontal: 16),
-                        itemCount: _recentTransactions.length,
-                        itemBuilder: (context, index) {
-                          final transaction = _recentTransactions[index];
-                          return Container(
-                            width: 200,
-                            margin: const EdgeInsets.only(right: 12),
-                            decoration: BoxDecoration(
-                              color: Colors.white,
-                              borderRadius: BorderRadius.circular(12),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Colors.black12,
-                                  blurRadius: 4,
-                                  offset: Offset(0, 2),
+        ),
+        const SizedBox(height: 12),
+        SizedBox(
+          height: 100, // Adjusted height
+          child: _isLoadingRecent
+              ? Center(child: CircularProgressIndicator())
+              : _recentTransactions.isEmpty
+                  ? Center(
+                      child: Text(
+                        "No recent transactions",
+                        style: TextStyle(color: Colors.grey),
+                      ),
+                    )
+                  : ListView.builder(
+                      scrollDirection: Axis.horizontal,
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      itemCount: _recentTransactions.take(4).length, // Show only 4 transactions
+                      itemBuilder: (context, index) {
+                        final transaction = _recentTransactions[index];
+                        // Get receiver's UPI ID and extract name (you might need to adjust this based on your data structure)
+                        String receiverName = transaction['receiver_upi_id']
+                            .toString()
+                            .split('@')[0] // Assuming UPI ID format: name@upi
+                            .split('_')[0] // In case of name_lastname@upi format
+                            .capitalize(); // You'll need to add this extension method
+
+                        return Container(
+                          width: 80,
+                          margin: const EdgeInsets.only(right: 16),
+                          child: Column(
+                            children: [
+                              // Circle with first letter
+                              Container(
+                                width: 50,
+                                height: 50,
+                                decoration: BoxDecoration(
+                                  color: Colors.blue.withOpacity(0.1),
+                                  shape: BoxShape.circle,
                                 ),
-                              ],
-                            ),
-                            child: ListTile(
-                              title: Text(
-                                '₹${transaction['amount']?.toStringAsFixed(2) ?? '0.00'}',
-                                style: TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.green[700],
-                                ),
-                              ),
-                              subtitle: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    DateFormat('MMM dd, yyyy')
-                                        .format(DateTime.parse(transaction['date'])),
-                                    style: TextStyle(fontSize: 12),
-                                  ),
-                                  Text(
-                                    'Points: ${transaction['reward_points']}',
-                                    style: TextStyle(
-                                      fontSize: 12,
-                                      color: Colors.blue[700],
+                                child: Center(
+                                  child: Text(
+                                    receiverName[0].toUpperCase(),
+                                    style: const TextStyle(
+                                      fontSize: 24,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.blue,
                                     ),
                                   ),
-                                ],
+                                ),
                               ),
-                              trailing: Icon(Icons.receipt, color: Colors.grey),
-                            ),
-                          );
-                        },
-                      ),
-          ),
-        ],
-      ),
-    );
-  }
+                              const SizedBox(height: 8),
+                              // Receiver's name
+                              Text(
+                                receiverName,
+                                style: const TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                                textAlign: TextAlign.center,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                              // Amount
+                              Text(
+                                '₹${transaction['amount']?.toStringAsFixed(0) ?? '0'}',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: Colors.grey[600],
+                                ),
+                              ),
+                            ],
+                          ),
+                        );
+                      },
+                    ),
+        ),
+      ],
+    ),
+  );
+}
 
-Widget _buildFeatureSection(String title, List<Map<String, dynamic>> items) {
+// Add this extension method at the top of your file or in a separate utilities file
+
+  Widget _buildFeatureSection(String title, List<Map<String, dynamic>> items) {
     return Container(
-      margin: const EdgeInsets.symmetric(vertical: 8), // Reduced vertical margin
+      margin: const EdgeInsets.symmetric(vertical: 8),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -619,7 +637,7 @@ Widget _buildFeatureSection(String title, List<Map<String, dynamic>> items) {
               ),
             ),
           ),
-          const SizedBox(height: 12), // Reduced spacing
+          const SizedBox(height: 12),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16),
             child: GridView.builder(
@@ -627,15 +645,15 @@ Widget _buildFeatureSection(String title, List<Map<String, dynamic>> items) {
               physics: const NeverScrollableScrollPhysics(),
               gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                 crossAxisCount: 2,
-                crossAxisSpacing: 12, // Reduced spacing
-                mainAxisSpacing: 12, // Reduced spacing
-                childAspectRatio: 1.6, // Adjusted for better fit
+                crossAxisSpacing: 12,
+                mainAxisSpacing: 12,
+                childAspectRatio: 1.6,
               ),
               itemCount: items.length,
               itemBuilder: (context, index) {
                 final item = items[index];
                 return _buildFeatureCard(
-                  item['icon'],
+                  item['isPoints'] == true ? null : item['icon'],
                   item['title'],
                   item['subtitle'],
                   item['color'],
@@ -670,8 +688,10 @@ Widget _buildFeatureSection(String title, List<Map<String, dynamic>> items) {
   }
 }
 
+
+
   Widget _buildFeatureCard(
-    IconData icon,
+    IconData? icon,
     String title,
     String subtitle,
     Color color,
@@ -680,7 +700,7 @@ Widget _buildFeatureSection(String title, List<Map<String, dynamic>> items) {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        padding: const EdgeInsets.all(12), // Reduced padding
+        padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
           color: color.withOpacity(0.1),
           borderRadius: BorderRadius.circular(16),
@@ -690,21 +710,36 @@ Widget _buildFeatureSection(String title, List<Map<String, dynamic>> items) {
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(icon, color: color, size: 28), // Reduced icon size
-            const SizedBox(height: 8), // Reduced spacing
+            if (title == 'Points')
+              FutureBuilder<int>(
+                future: DatabaseHelper().getTotalPoints(),
+                builder: (context, snapshot) {
+                  return Text(
+                    '${snapshot.data ?? 0}',
+                    style: TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                      color: color,
+                    ),
+                  );
+                },
+              )
+            else
+              Icon(icon, color: color, size: 28),
+            const SizedBox(height: 8),
             Text(
               title,
               style: const TextStyle(
-                fontSize: 14, // Reduced font size
+                fontSize: 14,
                 fontWeight: FontWeight.bold,
                 color: Colors.black87,
               ),
             ),
-            const SizedBox(height: 2), // Reduced spacing
+            const SizedBox(height: 2),
             Text(
               subtitle,
               style: TextStyle(
-                fontSize: 11, // Reduced font size
+                fontSize: 11,
                 color: Colors.grey[600],
               ),
             ),
@@ -713,6 +748,7 @@ Widget _buildFeatureSection(String title, List<Map<String, dynamic>> items) {
       ),
     );
   }
+
   void _navigateTo(BuildContext context, Widget screen) {
     Navigator.push(
       context,

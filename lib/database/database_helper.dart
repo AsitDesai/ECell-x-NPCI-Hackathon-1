@@ -304,7 +304,7 @@ class DatabaseHelper extends ChangeNotifier {
   // Get all transactions
   Future<List<Map<String, dynamic>>> getAllTransactions() async {
     final Database db = await database;
-    return await db.query('transactions');
+    return await db.query('transactions', orderBy: 'date DESC');
   }
 
   // Get transactions by sender UPI ID

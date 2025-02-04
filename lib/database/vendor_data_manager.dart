@@ -13,32 +13,80 @@ class VendorDataManager {
         upiId: 'vendor1@oksbi',
         name: 'John Store',
         type: 'small',
-        phoneNumber: '1234567890', // Add phone number
-        location: 'New York',  // Add location
+        phoneNumber: '1234567890',
+        location: 'New York',
       ),
       Vendor(
         vendorId: 'V002',
         upiId: 'asitmdesai@oksbi',
         name: 'Super Market',
         type: 'small',
-        phoneNumber: '0987654321', // Add phone number
-        location: 'Los Angeles',  // Add location
+        phoneNumber: '0987654321',
+        location: 'Los Angeles',
       ),
       Vendor(
         vendorId: 'V003',
         upiId: 'vendor3@oksbi',
         name: 'Local Shop',
         type: 'medium',
-        phoneNumber: '1122334455', // Add phone number
-        location: 'Chicago',  // Add location
+        phoneNumber: '1122334455',
+        location: 'Chicago',
       ),
       Vendor(
         vendorId: 'V004',
         upiId: 'adityakharmale7@oksbi',
-        name: 'sd Shop',
+        name: 'SD Shop',
         type: 'medium',
-        phoneNumber: '1122334455', // Add phone number
-        location: 'San Francisco',  // Add location
+        phoneNumber: '2233445566',
+        location: 'San Francisco',
+      ),
+      Vendor(
+        vendorId: 'V005',
+        upiId: 'vendor5@okhdfcbank',
+        name: 'Fresh Mart',
+        type: 'big',
+        phoneNumber: '3344556677',
+        location: 'Houston',
+      ),
+      Vendor(
+        vendorId: 'V006',
+        upiId: 'vendor6@okicici',
+        name: 'City Bazaar',
+        type: 'big',
+        phoneNumber: '4455667788',
+        location: 'Seattle',
+      ),
+      Vendor(
+        vendorId: 'V007',
+        upiId: 'vendor7@okaxis',
+        name: 'Daily Needs',
+        type: 'small',
+        phoneNumber: '5566778899',
+        location: 'Boston',
+      ),
+      Vendor(
+        vendorId: 'V008',
+        upiId: 'vendor8@oksbi',
+        name: 'Mega Store',
+        type: 'medium',
+        phoneNumber: '6677889900',
+        location: 'Miami',
+      ),
+      Vendor(
+        vendorId: 'V009',
+        upiId: 'vendor9@okhdfcbank',
+        name: 'Grocery Hub',
+        type: 'big',
+        phoneNumber: '7788990011',
+        location: 'Dallas',
+      ),
+      Vendor(
+        vendorId: 'V010',
+        upiId: 'vendor10@okicici',
+        name: 'Food Basket',
+        type: 'small',
+        phoneNumber: '8899001122',
+        location: 'Denver',
       ),
     ];
 
@@ -46,6 +94,7 @@ class VendorDataManager {
       await _dbHelper.insertVendor(vendor);
     }
   }
+
 
   Future<void> addSamplePhones() async {
     final phones = [

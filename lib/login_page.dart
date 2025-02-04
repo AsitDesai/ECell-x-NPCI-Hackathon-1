@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-
+import 'user_data.dart';
 class LoginPage extends StatefulWidget {
   @override
   _LoginPageState createState() => _LoginPageState();
@@ -9,23 +9,27 @@ class LoginPage extends StatefulWidget {
 class _LoginPageState extends State<LoginPage> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
+  final _upiIdController = TextEditingController(); // Add this
   bool _isPasswordVisible = false;
   final _formKey = GlobalKey<FormState>();
 
-  Future<void> _login() async {
-    if (_formKey.currentState!.validate()) {
-      try {
-        UserCredential userCredential = await FirebaseAuth.instance.signInWithEmailAndPassword(
-          email: _emailController.text.trim(),
-          password: _passwordController.text.trim(),
-        );
-        print("User logged in: ${userCredential.user!.email}");
-        Navigator.pushReplacementNamed(context, '/home');
-      } on FirebaseAuthException catch (e) {
-        _showErrorDialog(e.message ?? "Login failed");
-      }
+  // Modify the login function to include UPI ID
+Future<void> _login() async {
+  if (_formKey.currentState!.validate()) {
+    try {
+      UserCredential userCredential = await FirebaseAuth.instance.signInWithEmailAndPassword(
+        email: _emailController.text.trim(),
+        password: _passwordController.text.trim(),
+      );
+      // Store the UPI ID
+      UserData.upiId = _upiIdController.text.trim();
+      print("User logged in: ${userCredential.user!.email}, UPI ID: ${UserData.upiId}");
+      Navigator.pushReplacementNamed(context, '/home');
+    } on FirebaseAuthException catch (e) {
+      _showErrorDialog(e.message ?? "Login failed");
     }
   }
+}
 
   void _showErrorDialog(String message) {
     showDialog(
@@ -59,11 +63,17 @@ class _LoginPageState extends State<LoginPage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  // Header
+                  // Header with Custom Image
                   Center(
                     child: Column(
                       children: [
-                        FlutterLogo(size: 100),
+                        // Replace FlutterLogo with your custom image
+                        Image.asset(
+                          'assets/sp.jpeg', // Update this path
+                          height: 200, // Adjust height as needed
+                          width: 200, // Adjust width as needed
+                          fit: BoxFit.contain,
+                        ),
                         SizedBox(height: 16),
                         Text(
                           'Welcome Back',
@@ -108,6 +118,32 @@ class _LoginPageState extends State<LoginPage> {
                     keyboardType: TextInputType.emailAddress,
                   ),
                   SizedBox(height: 16),
+
+                  // Add UPI ID field here
+                  TextFormField(
+                    controller: _upiIdController,
+                    decoration: InputDecoration(
+                      labelText: 'UPI ID',
+                      prefixIcon: Icon(Icons.account_balance_wallet_outlined),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Please enter your UPI ID';
+                      }
+                      // Add UPI ID format validation if needed
+                      if (!value.contains('@')) {
+                        return 'Enter a valid UPI ID';
+                      }
+                      return null;
+                    },
+                    keyboardType: TextInputType.text,
+                  ),
+                  SizedBox(height: 16),
+
+
 
                   // Password Input
                   TextFormField(
@@ -211,6 +247,7 @@ class _LoginPageState extends State<LoginPage> {
   void dispose() {
     _emailController.dispose();
     _passwordController.dispose();
+    _upiIdController.dispose(); // Add this
     super.dispose();
   }
 }
