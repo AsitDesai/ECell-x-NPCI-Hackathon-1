@@ -4,7 +4,7 @@
 
 The URS App is a modern digital payment and billing system designed to provide users with a secure, convenient, and efficient way to manage transactions. The app integrates multiple functionalities, including payment processing, QR code scanning, bill management, and vendor analytics.
 
-[Front Page](FrontPage.jpeg)
+![Front Page](FrontPage.jpeg)
 
 ---
 
