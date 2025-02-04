@@ -134,6 +134,3 @@ Stores bills linked to transactions:
 This project is licensed under the MIT License.
 
 ---
-
-## Contact
-For queries, reach out to [Your Email or GitHub Issues].
