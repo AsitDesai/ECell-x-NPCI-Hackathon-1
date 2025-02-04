@@ -77,7 +77,7 @@ Ensure you have the following installed:
 - Firebase account with authentication enabled
 
 ### Refer : [App code Documentataion](https://github.com/AdityaKharmaleGoat7/ECell-x-NPCI-Hackathon/blob/main/App_code_documentation.pdf)
-
+### Demo video of app : [Video](https://github.com/AdityaKharmaleGoat7/ECell-x-NPCI-Hackathon/tree/main/Demo%20video%20of%20app%20working)
 ### Step-by-Step Setup
 1. **Clone the repository**
    ```sh
