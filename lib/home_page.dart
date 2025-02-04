@@ -13,7 +13,7 @@ import 'package:ursapp/screens/drafts.dart';
 import 'package:ursapp/screens/upload_bill.dart';
 import 'package:ursapp/screens/my_bills.dart';
 import 'package:ursapp/screens/qr_scanner_screen.dart';
-import 'package:ursapp/screens/database_management_screen.dart';
+// import 'package:ursapp/screens/database_management_screen.dart';
 import '../database/database_helper.dart';
 import 'package:intl/intl.dart'; // For date formatting
 import 'screens/offers_and_rewards_screen.dart';
@@ -22,19 +22,7 @@ extension StringExtension on String {
     return "${this[0].toUpperCase()}${this.substring(1).toLowerCase()}";
   }
 }
-class OffersAndRewardsScreen extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('Offers & Rewards'),
-      ),
-      body: Center(
-        child: Text('Offers and Rewards Screen'),
-      ),
-    );
-  }
-}
+ 
 
 class HomePage extends StatefulWidget {
   const HomePage({Key? key}) : super(key: key);
