@@ -31,7 +31,8 @@ Future<void> main() async {
   try {
     // Ensure Flutter bindings are initialized
     WidgetsFlutterBinding.ensureInitialized();
-
+final vendorManager = VendorDataManager();
+  await vendorManager.initializeVendors();
     // Set preferred orientations
     await SystemChrome.setPreferredOrientations([
       DeviceOrientation.portraitUp,
@@ -42,7 +43,6 @@ Future<void> main() async {
     await Firebase.initializeApp();
 
     // Initialize database and add sample vendors and phones
-    final vendorManager = VendorDataManager();
     await vendorManager.addSampleVendors();
     await vendorManager.addSamplePhones();
     await vendorManager.addSampleTransactions();

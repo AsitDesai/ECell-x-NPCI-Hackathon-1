@@ -6,13 +6,21 @@ import '../models/transaction.dart';
 class VendorDataManager {
   final DatabaseHelper _dbHelper = DatabaseHelper();
 
+  Future<void> initializeVendors() async {
+    // Check if vendors already exist
+    final existingVendors = await _dbHelper.getAllVendors();
+    if (existingVendors.isEmpty) {
+      await addSampleVendors();
+    }
+  }
+
   Future<void> addSampleVendors() async {
     final vendors = [
       Vendor(
         vendorId: 'V001',
-        upiId: 'vendor1@oksbi',
+        upiId: 'chaitanyakumar160@okhdfcbank',
         name: 'John Store',
-        type: 'small',
+        type: 'medium',
         phoneNumber: '1234567890',
         location: 'New York',
       ),
@@ -35,8 +43,8 @@ class VendorDataManager {
       Vendor(
         vendorId: 'V004',
         upiId: 'adityakharmale7@oksbi',
-        name: 'SD Shop',
-        type: 'medium',
+        name: 'SDK Shop',
+        type: 'big',
         phoneNumber: '2233445566',
         location: 'San Francisco',
       ),
