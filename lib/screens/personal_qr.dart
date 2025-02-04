@@ -1,7 +1,30 @@
 import 'package:flutter/material.dart';
+import 'package:qr_flutter/qr_flutter.dart';
 import '../user_data.dart';
 
-class PersonalQrScreen extends StatelessWidget {
+class PersonalQrScreen extends StatefulWidget {
+  @override
+  _PersonalQrScreenState createState() => _PersonalQrScreenState();
+}
+
+class _PersonalQrScreenState extends State<PersonalQrScreen> {
+  String? upiId;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadUpiId();
+  }
+
+  Future<void> _loadUpiId() async {
+    final loadedUpiId = await UserData.loadUpiId();
+    if (mounted) {
+      setState(() {
+        upiId = loadedUpiId;
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -11,66 +34,56 @@ class PersonalQrScreen extends StatelessWidget {
       body: Center(
         child: Padding(
           padding: const EdgeInsets.all(16.0),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Container(
-                padding: EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(12),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.grey.withOpacity(0.2),
-                      spreadRadius: 2,
-                      blurRadius: 5,
-                      offset: Offset(0, 3),
-                    ),
-                  ],
-                ),
-                child: Column(
+          child: upiId == null
+              ? CircularProgressIndicator() // Show loading while fetching UPI ID
+              : Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Icon(
-                      Icons.qr_code,
-                      size: 100,
-                      color: Colors.blue,
-                    ),
-                    SizedBox(height: 20),
-                    Text(
-                      'Your UPI ID is:',
-                      style: TextStyle(
-                        fontSize: 18,
-                        color: Colors.grey[600],
+                    Container(
+                      padding: EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(12),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.grey.withOpacity(0.2),
+                            spreadRadius: 2,
+                            blurRadius: 5,
+                            offset: Offset(0, 3),
+                          ),
+                        ],
+                      ),
+                      child: Column(
+                        children: [
+                          QrImageView(
+                            data: upiId!,
+                            version: QrVersions.auto,
+                            size: 200.0,
+                            backgroundColor: Colors.white,
+                          ),
+                          SizedBox(height: 20),
+                          Text(
+                            'Your UPI ID is:',
+                            style: TextStyle(
+                              fontSize: 18,
+                              color: Colors.grey[600],
+                            ),
+                          ),
+                          SizedBox(height: 10),
+                          Text(
+                            upiId!,
+                            style: TextStyle(
+                              fontSize: 24,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.blue,
+                            ),
+                          ),
+                        ],
                       ),
                     ),
-                    SizedBox(height: 10),
-                    Text(
-                      UserData.upiId ?? 'No UPI ID found',
-                      style: TextStyle(
-                        fontSize: 24,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.blue,
-                      ),
-                    ),
+                    // ... rest of your UI code
                   ],
                 ),
-              ),
-              SizedBox(height: 20),
-              ElevatedButton.icon(
-                onPressed: () {
-                  // Add functionality to share UPI ID
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('Share functionality coming soon!')),
-                  );
-                },
-                icon: Icon(Icons.share),
-                label: Text('Share UPI ID'),
-                style: ElevatedButton.styleFrom(
-                  padding: EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                ),
-              ),
-            ],
-          ),
         ),
       ),
     );

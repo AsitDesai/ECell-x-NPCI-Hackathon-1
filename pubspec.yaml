@@ -43,6 +43,8 @@ dependencies:
   path: ^1.8.1
   provider: ^6.0.0
   intl: ^0.20.2
+  qr_flutter: ^4.1.0
+  shared_preferences: ^2.2.2
 
 dev_dependencies:
   flutter_test:
@@ -70,6 +72,10 @@ flutter:
     - assets/ads3.png
     - assets/ad4.png
     - assets/sp.jpeg
+    - assets/npci.jpg
+    - assets/imps.png
+
+
 
 
   # To add assets to your application, add an assets section, like this:

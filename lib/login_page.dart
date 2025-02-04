@@ -21,8 +21,8 @@ Future<void> _login() async {
         email: _emailController.text.trim(),
         password: _passwordController.text.trim(),
       );
-      // Store the UPI ID
-      UserData.upiId = _upiIdController.text.trim();
+      // Save the UPI ID
+      await UserData.saveUpiId(_upiIdController.text.trim());
       print("User logged in: ${userCredential.user!.email}, UPI ID: ${UserData.upiId}");
       Navigator.pushReplacementNamed(context, '/home');
     } on FirebaseAuthException catch (e) {

@@ -41,7 +41,8 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
   late Timer _timer;
   int _currentPage = 0;
   final List<String> adsImages = [
-    'assets/ads2.jpeg',
+    'assets/npci.jpg',
+    'assets/imps.png',
     'assets/ads3.png',
     'assets/ad4.png',
   ];
@@ -159,18 +160,57 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
   }
 
   Future<void> _handleLogout(BuildContext context) async {
-    try {
-      await FirebaseAuth.instance.signOut();
-      Navigator.of(context).pushReplacementNamed('/login');
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: const Text('Error signing out. Please try again.'),
-          backgroundColor: Colors.red,
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-        ),
-      );
+    final bool? confirm = await showDialog<bool>(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(15),
+          ),
+          title: const Text(
+            'Confirm Logout',
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          content: const Text('Are you sure you want to logout?'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(false),
+              child: Text(
+                'Cancel',
+                style: TextStyle(color: Colors.grey[600]),
+              ),
+            ),
+            ElevatedButton(
+              onPressed: () => Navigator.of(context).pop(true),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.blue,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+              ),
+              child: const Text('Logout'),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (confirm == true) {
+      try {
+        await FirebaseAuth.instance.signOut();
+        Navigator.of(context).pushReplacementNamed('/login');
+      } catch (e) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: const Text('Error signing out. Please try again.'),
+            backgroundColor: Colors.red,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+          ),
+        );
+      }
     }
   }
 
@@ -272,64 +312,70 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
     );
   }
 
-  Widget _buildProfileMenu() {
-    return PopupMenuButton(
-      offset: const Offset(0, 50),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(20),
-          color: Colors.grey[100],
-        ),
-        child: Row(
-          children: [
-            const CircleAvatar(
-              backgroundImage: AssetImage('assets/chill.jpg'),
-              radius: 16,
-            ),
-            const SizedBox(width: 8),
-            const Icon(Icons.arrow_drop_down, color: Colors.grey),
-          ],
-        ),
+Widget _buildProfileMenu() {
+  return PopupMenuButton(
+    offset: const Offset(0, 50),
+    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+    child: Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(20),
+        color: Colors.blue[100], // Keep original color
       ),
-      itemBuilder: (context) => [
-        PopupMenuItem(
-          child: SizedBox(
-            width: 280,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _buildProfileHeader(),
-                const Divider(height: 20),
-                _buildPopupMenuItem(
-                  Icons.person_outline,
-                  "Profile",
-                  () => _navigateTo(context, ProfileScreen()),
-                ),
-                _buildPopupMenuItem(
-                  Icons.settings_outlined,
-                  "Settings",
-                  () => _navigateTo(context, SettingsScreen()),
-                ),
-                _buildPopupMenuItem(
-                  Icons.help_outline,
-                  "Help",
-                  () => _navigateTo(context, HelpScreen()),
-                ),
-                const Divider(height: 20),
-                _buildPopupMenuItem(
-                  Icons.logout,
-                  "Logout",
-                  () => _handleLogout(context),
-                ),
-              ],
-            ),
+      child: Row(
+        children: [
+          const CircleAvatar(
+            backgroundImage: AssetImage('assets/chill.jpg'),
+            radius: 16,
+          ),
+          const SizedBox(width: 8),
+          const Icon(Icons.arrow_drop_down, color: Colors.blue), // Keep original color
+        ],
+      ),
+    ),
+    itemBuilder: (context) => [
+      PopupMenuItem(
+        child: Container(
+          width: 280,
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(15),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _buildProfileHeader(),
+              const Divider(height: 20),
+              _buildPopupMenuItem(
+                Icons.person_outline,
+                "Profile",
+                () => _navigateTo(context, ProfileScreen()),
+              ),
+              _buildPopupMenuItem(
+                Icons.settings_outlined,
+                "Settings",
+                () => _navigateTo(context, SettingsScreen()),
+              ),
+              _buildPopupMenuItem(
+                Icons.help_outline,
+                "Help",
+                () => _navigateTo(context, HelpScreen()),
+              ),
+              const Divider(height: 20),
+              _buildPopupMenuItem(
+                Icons.logout,
+                "Logout",
+                () {
+                  Navigator.pop(context); // Close the popup menu
+                  _handleLogout(context);
+                },
+              ),
+            ],
           ),
         ),
-      ],
-    );
-  }
+      ),
+    ],
+  );
+}
 
   Widget _buildProfileHeader() {
     return Row(
@@ -767,31 +813,31 @@ Widget _buildRecentTransactions() {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-      appBar: PreferredSize(
-        preferredSize: const Size.fromHeight(70),
-        child: AppBar(
-          backgroundColor: Colors.white,
-          elevation: 0,
-          toolbarHeight: 70,
-          title: _buildSearchField(),
-          actions: [
-            Container(
-              margin: const EdgeInsets.symmetric(horizontal: 8),
-              decoration: BoxDecoration(
-                color: Colors.grey[100],
-                borderRadius: BorderRadius.circular(20),
+        appBar: PreferredSize(
+          preferredSize: const Size.fromHeight(70),
+          child: AppBar(
+            backgroundColor: Colors.blue, // Keep white background
+            elevation: 0,
+            toolbarHeight: 70,
+            title: _buildSearchField(),
+            actions: [
+              Container(
+                margin: const EdgeInsets.symmetric(horizontal: 8),
+                decoration: BoxDecoration(
+                  color: Colors.grey[100],
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: IconButton(
+                  icon: const Icon(Icons.notifications_outlined, color: Colors.grey),
+                  onPressed: _handleNotifications,
+                ),
               ),
-              child: IconButton(
-                icon: const Icon(Icons.notifications_outlined, color: Colors.grey),
-                onPressed: _handleNotifications,
-              ),
-            ),
-            const SizedBox(width: 8),
-            _buildProfileMenu(),
-            const SizedBox(width: 16),
-          ],
+              const SizedBox(width: 8),
+              _buildProfileMenu(),
+              const SizedBox(width: 16),
+            ],
+          ),
         ),
-      ),
       body: TabBarView(
         controller: _tabController,
         physics: const NeverScrollableScrollPhysics(),
