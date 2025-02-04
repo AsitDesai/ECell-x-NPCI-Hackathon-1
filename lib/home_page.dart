@@ -14,6 +14,9 @@ import 'package:ursapp/screens/upload_bill.dart';
 import 'package:ursapp/screens/my_bills.dart';
 import 'package:ursapp/screens/qr_scanner_screen.dart';
 import 'package:ursapp/screens/database_management_screen.dart';
+import '../database/database_helper.dart';
+import 'package:intl/intl.dart'; // For date formatting
+
 
 class HomePage extends StatefulWidget {
   const HomePage({Key? key}) : super(key: key);
@@ -41,60 +44,60 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
   // Quick actions data
   final List<Map<String, dynamic>> quickActions = [
     {
-      'icon': Icons.qr_code_scanner,
-      'label': 'Scan QR',
+      'icon': Icons.qr_code,
+      'label': 'Personal QR',
       'color': Colors.blue,
-      'screen': QrScannerScreen(),
+      'screen': PersonalQrScreen(),
     },
     {
-      'icon': Icons.receipt_long,
-      'label': 'Create Bill',
+      'icon': Icons.contact_phone,
+      'label': 'Contacts',
       'color': Colors.green,
-      'screen': CreateBillScreen(),
+      'screen': ContactsScreen(),
     },
     {
-      'icon': Icons.wallet_giftcard,
-      'label': 'Points',
+      'icon': Icons.history,
+      'label': 'History',
       'color': Colors.orange,
-      'screen': CurrentPointsScreen(),
+      'screen': TransactionHistoryScreen(),
     },
     {
-      'icon': Icons.assignment,
-      'label': 'My Bills',
+      'icon': Icons.cloud_upload,
+      'label': 'Upload Bill',
       'color': Colors.purple,
-      'screen': MyBillsScreen(),
+      'screen': UploadBillScreen(),
     },
   ];
 
   // Feature categories
   final List<Map<String, dynamic>> services = [
     {
-      'icon': Icons.qr_code,
-      'title': 'Personal QR',
-      'subtitle': 'Share your QR code',
+      'icon': Icons.qr_code_scanner,
+      'title': 'Scan QR',
+      'subtitle': 'Scan QR code',
       'color': Colors.blue,
-      'screen': PersonalQrScreen(),
+      'screen': QrScannerScreen(),
     },
     {
-      'icon': Icons.contact_phone,
-      'title': 'Contacts',
-      'subtitle': 'Manage contacts',
+      'icon': Icons.receipt_long,
+      'title': 'Create Bill',
+      'subtitle': 'Create new bill',
       'color': Colors.green,
-      'screen': ContactsScreen(),
+      'screen': CreateBillScreen(),
     },
     {
-      'icon': Icons.history,
-      'title': 'History',
-      'subtitle': 'View transactions',
+      'icon': Icons.wallet_giftcard,
+      'title': 'Points',
+      'subtitle': 'View points',
       'color': Colors.orange,
-      'screen': TransactionHistoryScreen(),
+      'screen': CurrentPointsScreen(),
     },
     {
-      'icon': Icons.cloud_upload,
-      'title': 'Upload Bill',
-      'subtitle': 'Submit new bill',
+      'icon': Icons.assignment,
+      'title': 'My Bills',
+      'subtitle': 'View bills',
       'color': Colors.purple,
-      'screen': UploadBillScreen(),
+      'screen': MyBillsScreen(),
     },
   ];
 
@@ -118,6 +121,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
   @override
   void initState() {
     super.initState();
+    _loadRecentTransactions();
     _pageController = PageController(initialPage: 0);
     _tabController = TabController(length: 3, vsync: this);
     _startAutoScroll();
@@ -455,40 +459,145 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
 
   Widget _buildQuickActions() {
     return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceAround,
-        children: quickActions.map((action) {
-          return GestureDetector(
-            onTap: () => _navigateTo(context, action['screen']),
-            child: Column(
-              children: [
-                Container(
-                  width: 60,
-                  height: 60,
-                  decoration: BoxDecoration(
-                    color: action['color'].withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  child: Icon(
-                    action['icon'],
-                    color: action['color'],
-                    size: 28,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  action['label'],
-                  style: TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w500,
-                    color: Colors.grey[800],
-                  ),
-                ),
-              ],
+      margin: const EdgeInsets.symmetric(vertical: 8),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: Text(
+              'Quick Actions',
+              style: const TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+                color: Colors.black87,
+              ),
             ),
-          );
-        }).toList(),
+          ),
+          const SizedBox(height: 12),
+          Container(
+            margin: const EdgeInsets.symmetric(horizontal: 16),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: quickActions.map((action) {
+                return GestureDetector(
+                  onTap: () => _navigateTo(context, action['screen']),
+                  child: Column(
+                    children: [
+                      Container(
+                        width: 60,
+                        height: 60,
+                        decoration: BoxDecoration(
+                          color: action['color'].withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: Icon(
+                          action['icon'],
+                          color: action['color'],
+                          size: 28,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        action['label'],
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w500,
+                          color: Colors.grey[800],
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              }).toList(),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildRecentTransactions() {
+    return Container(
+      margin: const EdgeInsets.symmetric(vertical: 8),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: const Text(
+              'Recent Transactions',
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+                color: Colors.black87,
+              ),
+            ),
+          ),
+          const SizedBox(height: 12),
+          SizedBox(
+            height: 120,
+            child: _isLoadingRecent
+                ? Center(child: CircularProgressIndicator())
+                : _recentTransactions.isEmpty
+                    ? Center(
+                        child: Text(
+                          "No recent transactions",
+                          style: TextStyle(color: Colors.grey),
+                        ),
+                      )
+                    : ListView.builder(
+                        scrollDirection: Axis.horizontal,
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        itemCount: _recentTransactions.length,
+                        itemBuilder: (context, index) {
+                          final transaction = _recentTransactions[index];
+                          return Container(
+                            width: 200,
+                            margin: const EdgeInsets.only(right: 12),
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(12),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black12,
+                                  blurRadius: 4,
+                                  offset: Offset(0, 2),
+                                ),
+                              ],
+                            ),
+                            child: ListTile(
+                              title: Text(
+                                '₹${transaction['amount']?.toStringAsFixed(2) ?? '0.00'}',
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.green[700],
+                                ),
+                              ),
+                              subtitle: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    DateFormat('MMM dd, yyyy')
+                                        .format(DateTime.parse(transaction['date'])),
+                                    style: TextStyle(fontSize: 12),
+                                  ),
+                                  Text(
+                                    'Points: ${transaction['reward_points']}',
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      color: Colors.blue[700],
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              trailing: Icon(Icons.receipt, color: Colors.grey),
+                            ),
+                          );
+                        },
+                      ),
+          ),
+        ],
       ),
     );
   }
@@ -539,6 +648,27 @@ Widget _buildFeatureSection(String title, List<Map<String, dynamic>> items) {
       ),
     );
   }
+  List<Map<String, dynamic>> _recentTransactions = [];
+  bool _isLoadingRecent = true;
+  Future<void> _loadRecentTransactions() async {
+  try {
+    final DatabaseHelper dbHelper = DatabaseHelper();
+    final List<Map<String, dynamic>> transactions = 
+      await dbHelper.getAllTransactions();
+    
+    setState(() {
+      _recentTransactions = transactions
+          .take(5) // Get only first 5 transactions
+          .toList();
+      _isLoadingRecent = false;
+    });
+  } catch (e) {
+    setState(() => _isLoadingRecent = false);
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Error loading recent transactions: $e')),
+    );
+  }
+}
 
   Widget _buildFeatureCard(
     IconData icon,
@@ -631,30 +761,19 @@ Widget _buildFeatureSection(String title, List<Map<String, dynamic>> items) {
         physics: const NeverScrollableScrollPhysics(),
         children: [
           // Home Tab
-          SingleChildScrollView(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _buildAdsSection(),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  child: Text(
-                    'Welcome back, ${user?.displayName?.split(' ')[0] ?? "User"}!',
-                    style: const TextStyle(
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.black87,
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 24),
-                _buildQuickActions(),
-                _buildFeatureSection('Services', services),
-                _buildFeatureSection('Tools', tools),
-                const SizedBox(height: 24),
-              ],
-            ),
+        SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _buildAdsSection(),
+              _buildFeatureSection('Services', services),
+              _buildQuickActions(),
+              _buildFeatureSection('Tools', tools),
+              _buildRecentTransactions(),
+              const SizedBox(height: 24),
+            ],
           ),
+        ),
           // History Tab
           TransactionHistoryScreen(),
           // Profile Tab

@@ -138,10 +138,7 @@ class _AddItemsScreenState extends State<AddItemsScreen> {
   Future<void> saveList() async {
     if (unsavedItems.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('No new items to save'),
-          backgroundColor: Colors.orange,
-        ),
+        const SnackBar(content: Text('No new items to save')),
       );
       return;
     }
@@ -149,7 +146,7 @@ class _AddItemsScreenState extends State<AddItemsScreen> {
     setState(() => _isLoading = true);
 
     try {
-      // Save only the unsaved items
+      // Save items as before
       for (var item in unsavedItems) {
         final formattedItem = {
           'item': item['name'],
@@ -159,28 +156,39 @@ class _AddItemsScreenState extends State<AddItemsScreen> {
         await _dbHelper.insertBill(formattedItem, widget.transactionId);
       }
 
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('New items saved successfully')),
+      // Check if amounts match after saving
+      _checkAmountMatch();
+      
+      // If amounts match and points haven't been added yet, add points
+      if (_isAmountMatched && !(await _dbHelper.hasPointsForTransaction(widget.transactionId))) {
+        final db = await _dbHelper.database;
+        final transaction = await db.query(
+          'transactions',
+          where: 'transaction_id = ?',
+          whereArgs: [widget.transactionId],
         );
-        setState(() {
-          unsavedItems.clear(); // Clear the unsaved items list
-          _hasNewItems = false; // Reset the flag after successful save
-        });
+        
+        if (transaction.isNotEmpty) {
+          final rewardPoints = transaction.first['reward_points'] as int;
+          await _dbHelper.addPoints(widget.transactionId, rewardPoints);
+        }
       }
+
+      // Rest of your existing saveList code...
+      setState(() {
+        unsavedItems.clear();
+        _hasNewItems = false;
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Items saved successfully')),
+      );
     } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error saving list: ${e.toString()}'),
-            backgroundColor: Theme.of(context).colorScheme.error,
-          ),
-        );
-      }
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error: ${e.toString()}')),
+      );
     } finally {
-      if (mounted) {
-        setState(() => _isLoading = false);
-      }
+      setState(() => _isLoading = false);
     }
   }
 

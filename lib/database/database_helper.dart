@@ -17,7 +17,7 @@ class DatabaseHelper extends ChangeNotifier {
     String path = join(await getDatabasesPath(), 'vendor_database.db');
     return await openDatabase(
       path,
-      version: 5, // Increment the version number for the new table
+      version: 6, // Increment the version number for the new table
       onCreate: _onCreate,
       onUpgrade: _onUpgrade, // Add onUpgrade callback for schema migration
     );
@@ -67,6 +67,45 @@ class DatabaseHelper extends ChangeNotifier {
       FOREIGN KEY(txn_id) REFERENCES transactions(transaction_id)
       )
       ''');
+    await db.execute('''
+      CREATE TABLE points_table(
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        transaction_id INTEGER UNIQUE,
+        points INTEGER NOT NULL,
+        FOREIGN KEY(transaction_id) REFERENCES transactions(transaction_id)
+      )
+    ''');
+      }
+
+  // Add points for a transaction
+  Future<void> addPoints(int transactionId, int points) async {
+    final Database db = await database;
+    await db.insert(
+      'points_table',
+      {
+        'transaction_id': transactionId,
+        'points': points,
+      },
+      conflictAlgorithm: ConflictAlgorithm.replace,
+    );
+  }
+
+  // Get total points
+  Future<int> getTotalPoints() async {
+    final Database db = await database;
+    final result = await db.rawQuery('SELECT SUM(points) as total FROM points_table');
+    return (result.first['total'] as int?) ?? 0;
+  }
+
+  // Check if points were already added for a transaction
+  Future<bool> hasPointsForTransaction(int transactionId) async {
+    final Database db = await database;
+    final result = await db.query(
+      'points_table',
+      where: 'transaction_id = ?',
+      whereArgs: [transactionId],
+    );
+    return result.isNotEmpty;
   }
 
   Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
@@ -116,6 +155,16 @@ class DatabaseHelper extends ChangeNotifier {
           item TEXT NOT NULL,
           quantity INTEGER NOT NULL,
           FOREIGN KEY(txn_id) REFERENCES transactions(transaction_id)
+        )
+      ''');
+    }
+    if (oldVersion < 6) { // Assuming current version is 5
+      await db.execute('''
+        CREATE TABLE points_table(
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          transaction_id INTEGER UNIQUE,
+          points INTEGER NOT NULL,
+          FOREIGN KEY(transaction_id) REFERENCES transactions(transaction_id)
         )
       ''');
     }
