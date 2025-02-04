@@ -78,6 +78,8 @@ Ensure you have the following installed:
 
 ### Refer : [App code Documentataion](https://github.com/AdityaKharmaleGoat7/ECell-x-NPCI-Hackathon/blob/main/App_code_documentation.pdf)
 ### Demo video of app : [Video](https://github.com/AdityaKharmaleGoat7/ECell-x-NPCI-Hackathon/tree/main/Demo%20video%20of%20app%20working)
+### APK of app: [Drive link](https://drive.google.com/file/d/1Imku20th1UopptEuNCiU-2p68y25Y2lH/view?usp=drive_link)
+
 ### Step-by-Step Setup
 1. **Clone the repository**
    ```sh
