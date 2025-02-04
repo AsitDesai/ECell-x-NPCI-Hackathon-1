@@ -1,16 +1,53 @@
-# ursapp
+# URS App - Digital Payment & Billing System
 
-A new Flutter project.
+A comprehensive mobile application built with Flutter that facilitates digital payments, vendor management, and transaction tracking with integrated reward points system.
 
-## Getting Started
+## Features
 
-This project is a starting point for a Flutter application.
+### Core Functionality
+- QR code-based payments
+- UPI integration
+- Secure PIN authentication
+- Digital bill management
+- Vendor database
+- Transaction history
+- Reward points system
 
-A few resources to get you started if this is your first Flutter project:
+### User Features
+- Personal QR code generation
+- Transaction tracking
+- Bill creation and management
+- Points balance monitoring
+- Profile management
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
+### Business Tools
+- Vendor registration
+- Bill creation and storage
+- Draft management
+- Contact# URS App - Digital Payment & Billing System
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+A comprehensive mobile application built with Flutter that facilitates digital payments, vendor management, and transaction tracking with integrated reward points system.
+
+## Features
+
+### Core Functionality
+- QR code-based payments
+- UPI integration
+- Secure PIN authentication
+- Digital bill management
+- Vendor database
+- Transaction history
+- Reward points system
+
+### User Features
+- Personal QR code generation
+- Transaction tracking
+- Bill creation and management
+- Points balance monitoring
+- Profile management
+
+### Business Tools
+- Vendor registration
+- Bill creation and storage
+- Draft management
+- Contact
