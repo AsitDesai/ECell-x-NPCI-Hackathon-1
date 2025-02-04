@@ -16,14 +16,17 @@ import 'package:ursapp/screens/qr_scanner_screen.dart';
 import 'package:ursapp/screens/database_management_screen.dart';
 
 class HomePage extends StatefulWidget {
+  const HomePage({Key? key}) : super(key: key);
+
   @override
   _HomePageState createState() => _HomePageState();
 }
 
-class _HomePageState extends State<HomePage> {
+class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin {
   final User? user = FirebaseAuth.instance.currentUser;
   final TextEditingController searchController = TextEditingController();
   int _selectedIndex = 0;
+  late TabController _tabController;
 
   // Image carousel variables
   late PageController _pageController;
@@ -35,11 +38,98 @@ class _HomePageState extends State<HomePage> {
     'assets/ad4.png',
   ];
 
+  // Quick actions data
+  final List<Map<String, dynamic>> quickActions = [
+    {
+      'icon': Icons.qr_code_scanner,
+      'label': 'Scan QR',
+      'color': Colors.blue,
+      'screen': QrScannerScreen(),
+    },
+    {
+      'icon': Icons.receipt_long,
+      'label': 'Create Bill',
+      'color': Colors.green,
+      'screen': CreateBillScreen(),
+    },
+    {
+      'icon': Icons.wallet_giftcard,
+      'label': 'Points',
+      'color': Colors.orange,
+      'screen': CurrentPointsScreen(),
+    },
+    {
+      'icon': Icons.assignment,
+      'label': 'My Bills',
+      'color': Colors.purple,
+      'screen': MyBillsScreen(),
+    },
+  ];
+
+  // Feature categories
+  final List<Map<String, dynamic>> services = [
+    {
+      'icon': Icons.qr_code,
+      'title': 'Personal QR',
+      'subtitle': 'Share your QR code',
+      'color': Colors.blue,
+      'screen': PersonalQrScreen(),
+    },
+    {
+      'icon': Icons.contact_phone,
+      'title': 'Contacts',
+      'subtitle': 'Manage contacts',
+      'color': Colors.green,
+      'screen': ContactsScreen(),
+    },
+    {
+      'icon': Icons.history,
+      'title': 'History',
+      'subtitle': 'View transactions',
+      'color': Colors.orange,
+      'screen': TransactionHistoryScreen(),
+    },
+    {
+      'icon': Icons.cloud_upload,
+      'title': 'Upload Bill',
+      'subtitle': 'Submit new bill',
+      'color': Colors.purple,
+      'screen': UploadBillScreen(),
+    },
+  ];
+
+  final List<Map<String, dynamic>> tools = [
+    {
+      'icon': Icons.drafts,
+      'title': 'Drafts',
+      'subtitle': 'Saved items',
+      'color': Colors.teal,
+      'screen': DraftsScreen(),
+    },
+    {
+      'icon': Icons.storage,
+      'title': 'Database',
+      'subtitle': 'Manage records',
+      'color': Colors.indigo,
+      'screen': DatabaseManagementScreen(),
+    },
+  ];
+
   @override
   void initState() {
     super.initState();
     _pageController = PageController(initialPage: 0);
+    _tabController = TabController(length: 3, vsync: this);
     _startAutoScroll();
+  }
+
+  @override
+  void dispose() {
+    _pageController.dispose();
+    _timer.cancel();
+    searchController.dispose();
+    _tabController.dispose();
+    super.dispose();
   }
 
   void _startAutoScroll() {
@@ -49,20 +139,14 @@ class _HomePageState extends State<HomePage> {
       } else {
         _currentPage = 0;
       }
-      _pageController.animateToPage(
-        _currentPage,
-        duration: const Duration(milliseconds: 300),
-        curve: Curves.easeIn,
-      );
+      if (_pageController.hasClients) {
+        _pageController.animateToPage(
+          _currentPage,
+          duration: const Duration(milliseconds: 350),
+          curve: Curves.easeInOut,
+        );
+      }
     });
-  }
-
-  @override
-  void dispose() {
-    _pageController.dispose();
-    _timer.cancel();
-    searchController.dispose();
-    super.dispose();
   }
 
   Future<void> _handleLogout(BuildContext context) async {
@@ -71,80 +155,167 @@ class _HomePageState extends State<HomePage> {
       Navigator.of(context).pushReplacementNamed('/login');
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Error signing out. Please try again.')),
+        SnackBar(
+          content: const Text('Error signing out. Please try again.'),
+          backgroundColor: Colors.red,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+        ),
       );
     }
   }
 
   void _handleSearch(String value) {
-    print('Searching for: $value');
+    // Implement search functionality
+    debugPrint('Searching for: $value');
   }
 
   void _handleNotifications() {
-    _showDialog('Notifications', [
-      _buildListItem(Icons.notifications, 'New notification 1', 'Notification details'),
-      _buildListItem(Icons.notifications, 'New notification 2', 'Notification details'),
-    ]);
-  }
-
-  void _handleMessages() {
-    _showDialog('Messages', [
-      _buildListItem(Icons.person, 'John Doe', 'Hello, how are you?'),
-      _buildListItem(Icons.person, 'Jane Smith', 'Meeting at 3 PM'),
-    ]);
-  }
-
-  void _showDialog(String title, List<Widget> items) {
-    showDialog(
+    showModalBottomSheet(
       context: context,
-      builder: (context) => AlertDialog(
-        title: Text(title),
-        content: ListView(shrinkWrap: true, children: items),
-        actions: [
-          TextButton(child: const Text('Close'), onPressed: () => Navigator.of(context).pop())
-        ],
+      backgroundColor: Colors.transparent,
+      builder: (context) => Container(
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              margin: const EdgeInsets.all(8),
+              width: 40,
+              height: 4,
+              decoration: BoxDecoration(
+                color: Colors.grey[300],
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+            const Padding(
+              padding: EdgeInsets.all(16),
+              child: Text(
+                'Notifications',
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+            Expanded(
+              child: ListView(
+                padding: const EdgeInsets.all(16),
+                children: [
+                  _buildNotificationItem(
+                    'New Bill Created',
+                    'Your bill #123 has been created successfully',
+                    '2 min ago',
+                  ),
+                  _buildNotificationItem(
+                    'Points Added',
+                    'You received 100 points from your last transaction',
+                    '1 hour ago',
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
 
-  Widget _buildListItem(IconData icon, String title, String subtitle) {
-    return ListTile(
-      leading: Icon(icon),
-      title: Text(title),
-      subtitle: Text(subtitle),
-    );
-  }
-
-  void _navigateTo(BuildContext context, Widget screen) {
-    Navigator.push(
-      context,
-      MaterialPageRoute(builder: (context) => screen),
+  Widget _buildNotificationItem(String title, String message, String time) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 16),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.grey[100],
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            title,
+            style: const TextStyle(
+              fontWeight: FontWeight.bold,
+              fontSize: 16,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            message,
+            style: TextStyle(
+              color: Colors.grey[600],
+              fontSize: 14,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            time,
+            style: TextStyle(
+              color: Colors.grey[400],
+              fontSize: 12,
+            ),
+          ),
+        ],
+      ),
     );
   }
 
   Widget _buildProfileMenu() {
     return PopupMenuButton(
       offset: const Offset(0, 50),
-      child: Row(
-        children: [
-          const CircleAvatar(backgroundImage: AssetImage('assets/chill.jpg'), radius: 18),
-          const SizedBox(width: 8),
-          const Icon(Icons.arrow_drop_down, color: Colors.grey),
-        ],
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(20),
+          color: Colors.grey[100],
+        ),
+        child: Row(
+          children: [
+            const CircleAvatar(
+              backgroundImage: AssetImage('assets/chill.jpg'),
+              radius: 16,
+            ),
+            const SizedBox(width: 8),
+            const Icon(Icons.arrow_drop_down, color: Colors.grey),
+          ],
+        ),
       ),
       itemBuilder: (context) => [
         PopupMenuItem(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              _buildProfileHeader(),
-              const Divider(height: 20),
-              _buildPopupMenuItem(Icons.person_outline, "Profile", () => _navigateTo(context, ProfileScreen())),
-              _buildPopupMenuItem(Icons.settings_outlined, "Settings", () => _navigateTo(context, SettingsScreen())),
-              _buildPopupMenuItem(Icons.help_outline, "Help", () => _navigateTo(context, HelpScreen())),
-              const Divider(height: 20),
-              _buildPopupMenuItem(Icons.logout, "Logout", () => _handleLogout(context)),
-            ],
+          child: SizedBox(
+            width: 280,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _buildProfileHeader(),
+                const Divider(height: 20),
+                _buildPopupMenuItem(
+                  Icons.person_outline,
+                  "Profile",
+                  () => _navigateTo(context, ProfileScreen()),
+                ),
+                _buildPopupMenuItem(
+                  Icons.settings_outlined,
+                  "Settings",
+                  () => _navigateTo(context, SettingsScreen()),
+                ),
+                _buildPopupMenuItem(
+                  Icons.help_outline,
+                  "Help",
+                  () => _navigateTo(context, HelpScreen()),
+                ),
+                const Divider(height: 20),
+                _buildPopupMenuItem(
+                  Icons.logout,
+                  "Logout",
+                  () => _handleLogout(context),
+                ),
+              ],
+            ),
           ),
         ),
       ],
@@ -154,14 +325,32 @@ class _HomePageState extends State<HomePage> {
   Widget _buildProfileHeader() {
     return Row(
       children: [
-        const CircleAvatar(backgroundImage: AssetImage('assets/chill.jpg'), radius: 25),
+        const CircleAvatar(
+          backgroundImage: AssetImage('assets/chill.jpg'),
+          radius: 25,
+        ),
         const SizedBox(width: 12),
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(user?.displayName ?? "User", style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-            Text(user?.email ?? "email@example.com", style: TextStyle(color: Colors.grey[600], fontSize: 14)),
-          ],
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                user?.displayName ?? "User",
+                style: const TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 16,
+                ),
+              ),
+              Text(
+                user?.email ?? "email@example.com",
+                style: TextStyle(
+                  color: Colors.grey[600],
+                  fontSize: 14,
+                ),
+                overflow: TextOverflow.ellipsis,
+              ),
+            ],
+          ),
         ),
       ],
     );
@@ -170,13 +359,17 @@ class _HomePageState extends State<HomePage> {
   Widget _buildPopupMenuItem(IconData icon, String text, VoidCallback onTap) {
     return InkWell(
       onTap: onTap,
+      borderRadius: BorderRadius.circular(8),
       child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 8.0),
+        padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 4.0),
         child: Row(
           children: [
             Icon(icon, size: 20, color: Colors.grey[700]),
             const SizedBox(width: 12),
-            Text(text, style: const TextStyle(fontSize: 14, color: Colors.grey)),
+            Text(
+              text,
+              style: const TextStyle(fontSize: 14),
+            ),
           ],
         ),
       ),
@@ -184,20 +377,19 @@ class _HomePageState extends State<HomePage> {
   }
 
   Widget _buildSearchField() {
-    return SizedBox(
-      width: MediaQuery.of(context).size.width * 0.6,
+    return Container(
+      height: 45,
+      decoration: BoxDecoration(
+        color: Colors.grey[100],
+        borderRadius: BorderRadius.circular(25),
+      ),
       child: TextField(
         controller: searchController,
         onChanged: _handleSearch,
         decoration: InputDecoration(
           hintText: "Search...",
-          hintStyle: TextStyle(color: Colors.grey[400]),
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(30),
-            borderSide: BorderSide.none,
-          ),
-          filled: true,
-          fillColor: Colors.grey[100],
+          hintStyle: TextStyle(color: Colors.grey[400], fontSize: 16),
+          border: InputBorder.none,
           contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
           prefixIcon: Icon(Icons.search, color: Colors.grey[400]),
         ),
@@ -207,8 +399,8 @@ class _HomePageState extends State<HomePage> {
 
   Widget _buildAdsSection() {
     return Container(
-      margin: const EdgeInsets.symmetric(vertical: 10, horizontal: 16),
-      height: 180,
+      margin: const EdgeInsets.only(top: 16, bottom: 24),
+      height: 200,
       child: Column(
         children: [
           Expanded(
@@ -220,19 +412,19 @@ class _HomePageState extends State<HomePage> {
               },
               itemBuilder: (context, index) {
                 return Container(
-                  margin: const EdgeInsets.all(8),
+                  margin: const EdgeInsets.symmetric(horizontal: 16),
                   decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(15),
+                    borderRadius: BorderRadius.circular(20),
                     image: DecorationImage(
                       image: AssetImage(adsImages[index]),
                       fit: BoxFit.cover,
                     ),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.grey.withOpacity(0.3),
-                        spreadRadius: 2,
-                        blurRadius: 5,
-                        offset: const Offset(0, 3),
+                        color: Colors.black.withOpacity(0.1),
+                        spreadRadius: 0,
+                        blurRadius: 10,
+                        offset: const Offset(0, 4),
                       ),
                     ],
                   ),
@@ -240,18 +432,18 @@ class _HomePageState extends State<HomePage> {
               },
             ),
           ),
-          const SizedBox(height: 10),
+          const SizedBox(height: 16),
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: List.generate(adsImages.length, (index) {
               return AnimatedContainer(
                 duration: const Duration(milliseconds: 300),
-                width: _currentPage == index ? 12 : 8,
+                width: _currentPage == index ? 24 : 8,
                 height: 8,
                 margin: const EdgeInsets.symmetric(horizontal: 4),
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(4),
-                  color: _currentPage == index ? Colors.blue : Colors.grey,
+                  color: _currentPage == index ? Colors.blue : Colors.grey[300],
                 ),
               );
             }),
@@ -261,99 +453,240 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  Widget _buildIconSection() {
-    return GridView.count(
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      crossAxisCount: 3,
-      crossAxisSpacing: 8,
-      mainAxisSpacing: 20,
-      padding: const EdgeInsets.all(8),
-      children: [
-        _buildIconItem(Icons.qr_code_scanner, "Scan QR", () => _navigateTo(context, QrScannerScreen())),
-        _buildIconItem(Icons.qr_code, "Personal QR", () => _navigateTo(context, PersonalQrScreen())),
-        _buildIconItem(Icons.contact_phone, "Contacts", () => _navigateTo(context, ContactsScreen())),
-        _buildIconItem(Icons.history, "Transaction_H", () => _navigateTo(context, TransactionHistoryScreen())),
-        _buildIconItem(Icons.wallet_giftcard, "Current Points", () => _navigateTo(context, CurrentPointsScreen())),
-        _buildIconItem(Icons.receipt_long, "Create Bill", () => _navigateTo(context, CreateBillScreen())),
-        _buildIconItem(Icons.drafts, "Drafts", () => _navigateTo(context, DraftsScreen())),
-        _buildIconItem(Icons.cloud_upload, "Upload Bill", () => _navigateTo(context, UploadBillScreen())),
-        _buildIconItem(Icons.assignment, "My Bills", () => _navigateTo(context, MyBillsScreen())),
-        _buildIconItem(Icons.storage, "Manage DB", () => _navigateTo(context, DatabaseManagementScreen())),
-      ],
+  Widget _buildQuickActions() {
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceAround,
+        children: quickActions.map((action) {
+          return GestureDetector(
+            onTap: () => _navigateTo(context, action['screen']),
+            child: Column(
+              children: [
+                Container(
+                  width: 60,
+                  height: 60,
+                  decoration: BoxDecoration(
+                    color: action['color'].withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Icon(
+                    action['icon'],
+                    color: action['color'],
+                    size: 28,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  action['label'],
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w500,
+                    color: Colors.grey[800],
+                  ),
+                ),
+              ],
+            ),
+          );
+        }).toList(),
+      ),
     );
   }
 
-  Widget _buildIconItem(IconData icon, String label, VoidCallback onTap) {
-    return GestureDetector(
-      onTap: onTap,
+Widget _buildFeatureSection(String title, List<Map<String, dynamic>> items) {
+    return Container(
+      margin: const EdgeInsets.symmetric(vertical: 8), // Reduced vertical margin
       child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          CircleAvatar(
-            radius: 30,
-            backgroundColor: Colors.blue.withOpacity(0.2),
-            child: Icon(icon, size: 30, color: Colors.blue),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: Text(
+              title,
+              style: const TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+                color: Colors.black87,
+              ),
+            ),
           ),
-          const SizedBox(height: 12),
-          Text(
-            label,
-            style: const TextStyle(fontSize: 14),
-            textAlign: TextAlign.center,
+          const SizedBox(height: 12), // Reduced spacing
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: GridView.builder(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 2,
+                crossAxisSpacing: 12, // Reduced spacing
+                mainAxisSpacing: 12, // Reduced spacing
+                childAspectRatio: 1.6, // Adjusted for better fit
+              ),
+              itemCount: items.length,
+              itemBuilder: (context, index) {
+                final item = items[index];
+                return _buildFeatureCard(
+                  item['icon'],
+                  item['title'],
+                  item['subtitle'],
+                  item['color'],
+                  () => _navigateTo(context, item['screen']),
+                );
+              },
+            ),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildWelcomeMessage() {
-    return Padding(
-      padding: const EdgeInsets.all(16.0),
-      child: Text(
-        'Welcome, ${user?.displayName ?? "User"}!',
-        style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+  Widget _buildFeatureCard(
+    IconData icon,
+    String title,
+    String subtitle,
+    Color color,
+    VoidCallback onTap,
+  ) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.all(12), // Reduced padding
+        decoration: BoxDecoration(
+          color: color.withOpacity(0.1),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: color.withOpacity(0.3)),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(icon, color: color, size: 28), // Reduced icon size
+            const SizedBox(height: 8), // Reduced spacing
+            Text(
+              title,
+              style: const TextStyle(
+                fontSize: 14, // Reduced font size
+                fontWeight: FontWeight.bold,
+                color: Colors.black87,
+              ),
+            ),
+            const SizedBox(height: 2), // Reduced spacing
+            Text(
+              subtitle,
+              style: TextStyle(
+                fontSize: 11, // Reduced font size
+                color: Colors.grey[600],
+              ),
+            ),
+          ],
+        ),
       ),
+    );
+  }
+  void _navigateTo(BuildContext context, Widget screen) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => screen),
     );
   }
 
   void _onItemTapped(int index) {
-    setState(() => _selectedIndex = index);
+    setState(() {
+      _selectedIndex = index;
+      _tabController.animateTo(index);
+    });
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 2,
-        title: _buildSearchField(),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.notifications_outlined, color: Colors.grey),
-            onPressed: _handleNotifications,
-          ),
-          _buildProfileMenu(),
-        ],
-      ),
-      body: SingleChildScrollView(
-        child: Column(
-          children: [
-            _buildAdsSection(),
-            _buildWelcomeMessage(),
-            _buildIconSection(),
+      backgroundColor: Colors.white,
+      appBar: PreferredSize(
+        preferredSize: const Size.fromHeight(70),
+        child: AppBar(
+          backgroundColor: Colors.white,
+          elevation: 0,
+          toolbarHeight: 70,
+          title: _buildSearchField(),
+          actions: [
+            Container(
+              margin: const EdgeInsets.symmetric(horizontal: 8),
+              decoration: BoxDecoration(
+                color: Colors.grey[100],
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: IconButton(
+                icon: const Icon(Icons.notifications_outlined, color: Colors.grey),
+                onPressed: _handleNotifications,
+              ),
+            ),
+            const SizedBox(width: 8),
+            _buildProfileMenu(),
+            const SizedBox(width: 16),
           ],
         ),
       ),
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: _selectedIndex,
-        onTap: _onItemTapped,
-        selectedItemColor: Colors.blue,
-        unselectedItemColor: Colors.grey,
-        items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
-          BottomNavigationBarItem(icon: Icon(Icons.history), label: 'History'),
-          BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profile'),
+      body: TabBarView(
+        controller: _tabController,
+        physics: const NeverScrollableScrollPhysics(),
+        children: [
+          // Home Tab
+          SingleChildScrollView(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _buildAdsSection(),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  child: Text(
+                    'Welcome back, ${user?.displayName?.split(' ')[0] ?? "User"}!',
+                    style: const TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black87,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 24),
+                _buildQuickActions(),
+                _buildFeatureSection('Services', services),
+                _buildFeatureSection('Tools', tools),
+                const SizedBox(height: 24),
+              ],
+            ),
+          ),
+          // History Tab
+          TransactionHistoryScreen(),
+          // Profile Tab
+          ProfileScreen(),
         ],
+      ),
+      bottomNavigationBar: Container(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.1),
+              blurRadius: 10,
+              offset: const Offset(0, -5),
+            ),
+          ],
+        ),
+        child: SafeArea(
+          child: TabBar(
+            controller: _tabController,
+            onTap: _onItemTapped,
+            indicatorColor: Colors.blue,
+            labelColor: Colors.blue,
+            unselectedLabelColor: Colors.grey,
+            indicatorSize: TabBarIndicatorSize.label,
+            tabs: const [
+              Tab(icon: Icon(Icons.home), text: 'Home'),
+              Tab(icon: Icon(Icons.history), text: 'History'),
+              Tab(icon: Icon(Icons.person), text: 'Profile'),
+            ],
+          ),
+        ),
       ),
     );
   }
